@@ -39,7 +39,10 @@ struct RootView: View {
 
             case .main:
                 if let selectedCityId = appState.selectedCityId {
-                    ExploreView(cityId: selectedCityId)
+                    //ExploreView(cityId: selectedCityId)
+                    NavigationStack {
+                        PlaceListView(cityId: selectedCityId, category: .museum)
+                    }
                 } else {
                     CitySelectionView { city in
                         appState.selectCity(city)
