@@ -4,6 +4,7 @@ import Combine
 @MainActor
 final class PlaceListViewModel: ObservableObject {
     @Published var places: [Place] = []
+    @Published var searchText: String = ""
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -23,11 +24,21 @@ final class PlaceListViewModel: ObservableObject {
     }
 
     var filteredPlaces: [Place] {
-        guard let category else {
-            return places
+        var result = places
+
+        if let category {
+            result = result.filter { $0.category == category }
         }
 
-        return places.filter { $0.category == category }
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !query.isEmpty else {
+            return result
+        }
+
+        return result.filter { place in
+            placeMatchesSearch(place, query: query)
+        }
     }
 
     var screenTitle: String {
@@ -42,6 +53,26 @@ final class PlaceListViewModel: ObservableObject {
         }
     }
 
+    var hasActiveSearch: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var emptyStateTitle: String {
+        hasActiveSearch ? "Sonuç bulunamadı" : "Mekan bulunamadı"
+    }
+
+    var emptyStateMessage: String {
+        if hasActiveSearch {
+            return "Aramana uygun mekan bulunamadı. Farklı bir kelime deneyebilirsin."
+        } else {
+            return "Bu kategoride henüz mekan bulunmuyor. Daha sonra tekrar kontrol edebilirsin."
+        }
+    }
+    
+    var resultsTitle: String {
+        hasActiveSearch ? "Arama sonuçları" : "Sonuçlar"
+    }
+
     func loadPlaces() async {
         isLoading = true
         errorMessage = nil
@@ -54,10 +85,28 @@ final class PlaceListViewModel: ObservableObject {
 
         isLoading = false
     }
-}//
-//  PlaceListViewModel.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
 
+    func clearSearch() {
+        searchText = ""
+    }
+
+    private func placeMatchesSearch(_ place: Place, query: String) -> Bool {
+        let normalizedQuery = query.localizedLowercase
+
+        let searchableText = [
+            place.name,
+            place.district,
+            place.address,
+            place.shortDescription,
+            place.longDescription ?? "",
+            place.category.displayName,
+            place.subCategory ?? "",
+            place.priceType.displayName,
+            place.tags.joined(separator: " ")
+        ]
+        .joined(separator: " ")
+        .localizedLowercase
+
+        return searchableText.contains(normalizedQuery)
+    }
+}

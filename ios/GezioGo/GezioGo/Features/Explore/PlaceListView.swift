@@ -26,6 +26,8 @@ struct PlaceListView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     headerView
+                    
+                    searchSection
 
                     contentSection
                 }
@@ -53,6 +55,13 @@ struct PlaceListView: View {
                 .lineSpacing(4)
         }
     }
+    
+    private var searchSection: some View {
+        SearchBarView(
+            text: $viewModel.searchText,
+            placeholder: "Bu listede ara"
+        )
+    }
 
     @ViewBuilder
     private var contentSection: some View {
@@ -66,10 +75,16 @@ struct PlaceListView: View {
             }
         } else if viewModel.filteredPlaces.isEmpty {
             EmptyStateView(
-                title: "Mekan bulunamadı",
-                message: "Bu kategoride henüz mekan bulunmuyor. Daha sonra tekrar kontrol edebilirsin.",
-                iconName: "mappin.slash"
-            )
+                title: viewModel.emptyStateTitle,
+                message: viewModel.emptyStateMessage,
+                iconName: "mappin.slash",
+                buttonTitle: viewModel.hasActiveSearch ? "Aramayı Temizle" : nil
+            ) {
+                withAnimation {
+                    viewModel.clearSearch()
+                }
+            }
+
         } else {
             placesList
         }
@@ -79,7 +94,7 @@ struct PlaceListView: View {
     private var placesList: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text("Sonuçlar")
+                Text(viewModel.resultsTitle)
                     .font(AppTypography.subtitle)
                     .foregroundStyle(AppColors.textPrimary)
 
