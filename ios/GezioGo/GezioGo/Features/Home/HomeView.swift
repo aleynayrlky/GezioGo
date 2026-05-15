@@ -129,28 +129,67 @@ struct HomeView: View {
 
                 Spacer()
 
-                Text("\(viewModel.events.count) etkinlik")
-                    .font(AppTypography.captionMedium)
-                    .foregroundStyle(AppColors.teal)
+                Button("Tümünü Gör") {
+                    navigate(.events(cityId: cityId))
+                }
+                .font(AppTypography.captionMedium)
+                .foregroundStyle(AppColors.teal)
             }
 
-            AppCard {
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    ForEach(viewModel.events.prefix(2)) { event in
-                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                            Text(event.title)
-                                .font(AppTypography.bodyMedium)
-                                .foregroundStyle(AppColors.textPrimary)
+            if viewModel.events.isEmpty {
+                EmptyStateView(
+                    title: "Etkinlik bulunamadı",
+                    message: "Bu şehir için henüz etkinlik eklenmemiş.",
+                    iconName: "calendar"
+                )
+            } else {
+                AppCard {
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        ForEach(Array(viewModel.events.prefix(2).enumerated()), id: \.element.id) { index, event in
+                            Button {
+                                navigate(.eventDetail(event: event))
+                            } label: {
+                                HStack(alignment: .top, spacing: AppSpacing.md) {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: AppRadius.medium)
+                                            .fill(AppColors.cream)
+                                            .frame(width: 44, height: 44)
 
-                            Text(event.venueName)
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
+                                        Image(systemName: event.category.iconName)
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundStyle(AppColors.petrol)
+                                    }
 
-                            AppTag(event.category.displayName, iconName: "calendar")
-                        }
+                                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                                        Text(event.title)
+                                            .font(AppTypography.bodyMedium)
+                                            .foregroundStyle(AppColors.textPrimary)
+                                            .multilineTextAlignment(.leading)
 
-                        if event.id != viewModel.events.prefix(2).last?.id {
-                            Divider()
+                                        Text(event.venueName)
+                                            .font(AppTypography.caption)
+                                            .foregroundStyle(AppColors.textSecondary)
+                                            .lineLimit(1)
+
+                                        HStack(spacing: AppSpacing.xs) {
+                                            AppTag(event.category.displayName, iconName: "calendar")
+                                            AppTag(event.startDate.gezioFormattedDate, iconName: "clock")
+                                        }
+                                    }
+
+                                    Spacer()
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(AppColors.textSecondary)
+                                        .padding(.top, AppSpacing.xs)
+                                }
+                            }
+                            .buttonStyle(.plain)
+
+                            if index != min(viewModel.events.count, 2) - 1 {
+                                Divider()
+                            }
                         }
                     }
                 }

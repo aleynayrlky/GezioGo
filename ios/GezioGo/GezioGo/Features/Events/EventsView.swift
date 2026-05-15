@@ -3,6 +3,7 @@ import SwiftUI
 struct EventsView: View {
     let cityId: String
 
+    @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: EventsViewModel
 
     init(cityId: String) {
@@ -88,7 +89,9 @@ struct EventsView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.upcomingEvents) { event in
-                    EventCard(event: event)
+                    EventCard(event: event) {
+                        navigate(.eventDetail(event: event))
+                    }
                 }
             }
         }

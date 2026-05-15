@@ -94,6 +94,12 @@ struct MainTabBarView: View {
 
         case .placeDetail(let place):
             PlaceDetailView(place: place)
+
+        case .events(let cityId):
+            EventsView(cityId: cityId)
+
+        case .eventDetail(let event):
+            EventDetailView(event: event)
         }
     }
 
