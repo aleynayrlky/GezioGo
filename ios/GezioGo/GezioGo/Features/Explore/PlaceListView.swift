@@ -57,61 +57,24 @@ struct PlaceListView: View {
     @ViewBuilder
     private var contentSection: some View {
         if viewModel.isLoading {
-            loadingView
+            LoadingView("Mekanlar yükleniyor...")
         } else if let errorMessage = viewModel.errorMessage {
-            errorView(errorMessage)
+            ErrorStateView(message: errorMessage) {
+                Task {
+                    await viewModel.loadPlaces()
+                }
+            }
         } else if viewModel.filteredPlaces.isEmpty {
-            emptyView
+            EmptyStateView(
+                title: "Mekan bulunamadı",
+                message: "Bu kategoride henüz mekan bulunmuyor. Daha sonra tekrar kontrol edebilirsin.",
+                iconName: "mappin.slash"
+            )
         } else {
             placesList
         }
     }
 
-    private var loadingView: some View {
-        VStack(spacing: AppSpacing.md) {
-            ProgressView()
-
-            Text("Mekanlar yükleniyor...")
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, AppSpacing.xl)
-    }
-
-    private func errorView(_ message: String) -> some View {
-        AppCard {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                Text("Bir sorun oluştu")
-                    .font(AppTypography.subtitle)
-                    .foregroundStyle(AppColors.error)
-
-                Text(message)
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.textSecondary)
-
-                AppButton(title: "Tekrar Dene") {
-                    Task {
-                        await viewModel.loadPlaces()
-                    }
-                }
-            }
-        }
-    }
-
-    private var emptyView: some View {
-        AppCard {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                Text("Mekan bulunamadı")
-                    .font(AppTypography.subtitle)
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Text("Bu kategoride henüz mekan bulunmuyor. Daha sonra tekrar kontrol edebilirsin.")
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-        }
-    }
 
     private var placesList: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {

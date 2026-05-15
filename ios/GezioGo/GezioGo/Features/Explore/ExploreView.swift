@@ -91,50 +91,22 @@ struct ExploreView: View {
     @ViewBuilder
     private var contentSection: some View {
         if viewModel.isLoading {
-            VStack(spacing: AppSpacing.md) {
-                ProgressView()
-                Text("Mekanlar yükleniyor...")
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, AppSpacing.xl)
-
+            LoadingView("Mekanlar yükleniyor...")
         } else if let errorMessage = viewModel.errorMessage {
-            AppCard {
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    Text("Bir sorun oluştu")
-                        .font(AppTypography.subtitle)
-                        .foregroundStyle(AppColors.error)
-
-                    Text(errorMessage)
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    AppButton(title: "Tekrar Dene") {
-                        Task {
-                            await viewModel.loadPlaces()
-                        }
-                    }
+            ErrorStateView(message: errorMessage) {
+                Task {
+                    await viewModel.loadPlaces()
                 }
             }
-
         } else if viewModel.filteredPlaces.isEmpty {
-            AppCard {
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    Text("Mekan bulunamadı")
-                        .font(AppTypography.subtitle)
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    Text("Bu kategoride henüz mekan bulunmuyor. Tüm kategorileri görüntülemeyi deneyebilirsin.")
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textSecondary)
-
-                    AppButton(title: "Tümünü Göster", style: .secondary) {
-                        withAnimation {
-                            viewModel.selectCategory(nil)
-                        }
-                    }
+            EmptyStateView(
+                title: "Mekan bulunamadı",
+                message: "Bu kategoride henüz mekan bulunmuyor. Tüm kategorileri görüntülemeyi deneyebilirsin.",
+                iconName: "mappin.slash",
+                buttonTitle: "Tümünü Göster"
+            ) {
+                withAnimation {
+                    viewModel.selectCategory(nil)
                 }
             }
 
