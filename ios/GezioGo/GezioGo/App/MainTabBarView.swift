@@ -8,6 +8,7 @@ struct MainTabBarView: View {
     @State private var homePath: [AppRoute] = []
     @State private var explorePath: [AppRoute] = []
     @State private var mapPath: [AppRoute] = []
+    @State private var favoritesPath: [AppRoute] = []
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -53,11 +54,15 @@ struct MainTabBarView: View {
             }
             .tag(MainTab.map)
 
-            temporaryTabView(
-                title: "Favoriler",
-                message: "Kaydettiğin mekanlar, etkinlikler ve rotalar burada görünecek.",
-                iconName: "heart.fill"
-            )
+            NavigationStack(path: $favoritesPath) {
+                FavoritesView(cityId: cityId)
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destination(for: route)
+                    }
+            }
+            .environment(\.navigate) { route in
+                favoritesPath.append(route)
+            }
             .tabItem {
                 tabLabel(for: .favorites)
             }
