@@ -1,0 +1,27 @@
+{
+  "id": "partner-id",
+  "name": "Kurum / işletme adı",
+  "slug": "kurum-isletme-adi",
+  "type": "municipality | province_culture_directorate | ministry | restaurant | cafe | hotel | agency | event_organizer | museum | public_institution | private_business | other",
+  "cityId": "samsun",
+  "authorizedCityIds": ["samsun"],
+  "authorizedUserIds": [],
+  "contactEmail": "",
+  "contactPhone": "",
+  "address": "",
+  "websiteUrl": "",
+  "logoUrl": "",
+  "status": "active | pending | suspended",
+  "permissions": {
+    "canCreatePlace": false,
+    "canEditPlace": false,
+    "canCreateEvent": false,
+    "canEditEvent": false,
+    "canPublishDirectly": false,
+    "canViewReports": false,
+    "canManageUsers": false,
+    "requiresApproval": true
+  },
+  "createdAt": "YYYY-MM-DDTHH:mm:ss+03:00",
+  "updatedAt": "YYYY-MM-DDTHH:mm:ss+03:00"
+}

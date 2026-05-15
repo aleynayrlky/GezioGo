@@ -1,0 +1,48 @@
+[
+  {
+    "id": "route_samsun_001",
+    "userId": "user_001",
+    "cityId": "samsun",
+    "title": "Samsun’da 1 Günlük Tarih ve Sahil Rotası",
+    "date": "2026-06-01",
+    "durationType": "one_day",
+    "budget": "medium",
+    "interests": ["history", "nature", "food_drink"],
+    "transportType": "walking",
+    "companions": "friends",
+    "tempo": "balanced",
+    "stops": [
+      {
+        "order": 1,
+        "type": "place",
+        "placeId": "bandirma-vapuru-muzesi",
+        "eventId": "",
+        "title": "Bandırma Vapuru Müzesi",
+        "timeLabel": "09:30 - 10:30",
+        "durationMinutes": 60,
+        "note": "Güne Samsun’un simge tarihi duraklarından biriyle başla.",
+        "latitude": 41.286,
+        "longitude": 36.36
+      },
+      {
+        "order": 2,
+        "type": "place",
+        "placeId": "atakum-sahili",
+        "eventId": "",
+        "title": "Atakum Sahili",
+        "timeLabel": "12:00 - 13:30",
+        "durationMinutes": 90,
+        "note": "Sahil yürüyüşü ve öğle molası için uygun bir durak.",
+        "latitude": 41.34,
+        "longitude": 36.25
+      }
+    ],
+    "totalDurationMinutes": 360,
+    "totalDistanceKm": 12.4,
+    "estimatedCostLevel": "medium",
+    "aiPromptVersion": "v1",
+    "isSaved": true,
+    "createdAt": "2026-05-15T00:00:00+03:00",
+    "updatedAt": "2026-05-15T00:00:00+03:00"
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "id": "samsun",
+  "name": "Samsun",
+  "slug": "samsun",
+  "country": "Türkiye",
+  "region": "Karadeniz",
+  "shortDescription": "Kısa şehir açıklaması buraya yazılır.",
+  "longDescription": "Detaylı şehir açıklaması buraya yazılır.",
+  "coverImageUrl": "",
+  "thumbnailUrl": "",
+  "latitude": 0.0,
+  "longitude": 0.0,
+  "popularCategoryIds": [],
+  "weatherRegionCode": "",
+  "isActive": true,
+  "createdAt": "YYYY-MM-DDTHH:mm:ss+03:00",
+  "updatedAt": "YYYY-MM-DDTHH:mm:ss+03:00"
+}
