@@ -1,83 +1,71 @@
 import SwiftUI
 
+enum AppLaunchState {
+    case splash
+    case onboarding
+    case main
+}
+
 struct RootView: View {
     @StateObject private var appState = AppState()
-
-    @State private var cities: [City] = []
-    @State private var places: [Place] = []
-    @State private var events: [Event] = []
-    @State private var errorMessage: String?
-
-    private let dataService: DataServiceProtocol = MockDataService()
+    @State private var launchState: AppLaunchState = .splash
 
     var body: some View {
+        Group {
+            switch launchState {
+            case .splash:
+                SplashView {
+                    withAnimation {
+                        launchState = appState.hasSeenOnboarding ? .main : .onboarding
+                    }
+                }
+
+            case .onboarding:
+                OnboardingView {
+                    appState.hasSeenOnboarding = true
+                    withAnimation {
+                        launchState = .main
+                    }
+                }
+
+            case .main:
+                temporaryMainView
+            }
+        }
+    }
+
+    private var temporaryMainView: some View {
         ZStack {
             AppColors.background
                 .ignoresSafeArea()
 
             VStack(spacing: AppSpacing.lg) {
-                VStack(spacing: AppSpacing.xs) {
-                    Text("GezioGo")
-                        .font(AppTypography.largeTitle)
-                        .foregroundStyle(AppColors.petrol)
+                Text("GezioGo")
+                    .font(AppTypography.largeTitle)
+                    .foregroundStyle(AppColors.petrol)
 
-                    Text("Şehir seninle keşfedilir")
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
+                Text("Ana akışa geçildi")
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.textSecondary)
 
-                if let errorMessage {
-                    AppCard {
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            Text("Hata")
-                                .font(AppTypography.subtitle)
-                                .foregroundStyle(AppColors.error)
+                AppCard {
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        Text("Sıradaki adım")
+                            .font(AppTypography.subtitle)
+                            .foregroundStyle(AppColors.textPrimary)
 
-                            Text(errorMessage)
-                                .font(AppTypography.body)
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-                    }
-                } else {
-                    AppCard {
-                        VStack(alignment: .leading, spacing: AppSpacing.md) {
-                            Text(cities.first?.name ?? "Şehir yükleniyor...")
-                                .font(AppTypography.subtitle)
-                                .foregroundStyle(AppColors.textPrimary)
+                        Text("Şehir seçimi ve ana sayfa ekranlarını bağlayacağız.")
+                            .font(AppTypography.body)
+                            .foregroundStyle(AppColors.textSecondary)
 
-                            Text(cities.first?.shortDescription ?? "JSON verisi bekleniyor.")
-                                .font(AppTypography.body)
-                                .foregroundStyle(AppColors.textSecondary)
-
-                            HStack {
-                                AppTag("\(places.count) mekan", iconName: "mappin.and.ellipse")
-                                AppTag("\(events.count) etkinlik", iconName: "calendar")
-                            }
-                        }
-                    }
-
-                    AppButton(title: "Mock Veriyi Yenile") {
-                        Task {
-                            await loadMockData()
+                        HStack {
+                            AppTag("Splash tamam", iconName: "checkmark.seal")
+                            AppTag("Onboarding tamam", iconName: "sparkles")
                         }
                     }
                 }
             }
             .padding(AppSpacing.lg)
-        }
-        .task {
-            await loadMockData()
-        }
-    }
-
-    private func loadMockData() async {
-        do {
-            cities = try await dataService.fetchCities()
-            places = try await dataService.fetchPlaces(cityId: "samsun")
-            events = try await dataService.fetchEvents(cityId: "samsun")
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
         }
     }
 }
