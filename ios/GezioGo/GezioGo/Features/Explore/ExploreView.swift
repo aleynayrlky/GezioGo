@@ -76,51 +76,23 @@ struct ExploreView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.md) {
                     ForEach(viewModel.categories, id: \.self) { category in
-                        categoryChip(category)
+                        CategoryCard(
+                            category: category,
+                            isSelected: viewModel.selectedCategory == category
+                        ) {
+                            withAnimation {
+                                if viewModel.selectedCategory == category {
+                                    viewModel.selectCategory(nil)
+                                } else {
+                                    viewModel.selectCategory(category)
+                                }
+                            }
+                        }
                     }
                 }
+                .padding(.vertical, AppSpacing.xs)
             }
         }
-    }
-
-    private func categoryChip(_ category: PlaceCategory) -> some View {
-        Button {
-            withAnimation {
-                if viewModel.selectedCategory == category {
-                    viewModel.selectCategory(nil)
-                } else {
-                    viewModel.selectCategory(category)
-                }
-            }
-        } label: {
-            VStack(spacing: AppSpacing.xs) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            viewModel.selectedCategory == category
-                            ? AppColors.petrol
-                            : AppColors.cream
-                        )
-                        .frame(width: 60, height: 60)
-
-                    Image(systemName: category.iconName)
-                        .font(.title3)
-                        .foregroundStyle(
-                            viewModel.selectedCategory == category
-                            ? .white
-                            : AppColors.petrol
-                        )
-                }
-
-                Text(category.displayName)
-                    .font(AppTypography.small)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-            }
-            .frame(width: 82)
-        }
-        .buttonStyle(.plain)
     }
 
     @ViewBuilder

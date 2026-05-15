@@ -1,46 +1,42 @@
-//
-//  PlaceCard.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
 import SwiftUI
 
 struct PlaceCard: View {
     let place: Place
+    var action: (() -> Void)? = nil
 
     var body: some View {
-        AppCard {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                topRow
+        Button {
+            action?()
+        } label: {
+            AppCard {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    topRow
 
-                Text(place.shortDescription)
-                    .font(AppTypography.body)
-                    .foregroundStyle(AppColors.textSecondary)
-                    .lineLimit(3)
+                    Text(place.shortDescription)
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
 
-                tagRow
+                    infoRow
+
+                    tagRow
+                }
             }
         }
+        .buttonStyle(.plain)
+        .disabled(action == nil)
     }
 
     private var topRow: some View {
         HStack(alignment: .top, spacing: AppSpacing.md) {
-            ZStack {
-                RoundedRectangle(cornerRadius: AppRadius.medium)
-                    .fill(AppColors.cream)
-                    .frame(width: 52, height: 52)
-
-                Image(systemName: place.category.iconName)
-                    .font(.title3)
-                    .foregroundStyle(AppColors.petrol)
-            }
+            iconBox
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text(place.name)
                     .font(AppTypography.subtitle)
                     .foregroundStyle(AppColors.textPrimary)
+                    .multilineTextAlignment(.leading)
 
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: "mappin.and.ellipse")
@@ -61,19 +57,101 @@ struct PlaceCard: View {
         }
     }
 
+    private var iconBox: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: AppRadius.medium)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            AppColors.cream,
+                            AppColors.gold.opacity(0.18)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 56, height: 56)
+
+            Image(systemName: place.category.iconName)
+                .font(.title3)
+                .foregroundStyle(AppColors.petrol)
+        }
+    }
+
+    private var infoRow: some View {
+        HStack(spacing: AppSpacing.md) {
+            infoItem(
+                icon: "clock",
+                text: durationText
+            )
+
+            infoItem(
+                icon: "ticket",
+                text: place.priceType.displayName
+            )
+
+            if place.isAccessible {
+                infoItem(
+                    icon: "figure.roll",
+                    text: "Erişilebilir"
+                )
+            }
+        }
+    }
+
+    private func infoItem(icon: String, text: String) -> some View {
+        HStack(spacing: AppSpacing.xxs) {
+            Image(systemName: icon)
+                .font(.caption)
+
+            Text(text)
+                .font(AppTypography.caption)
+                .lineLimit(1)
+        }
+        .foregroundStyle(AppColors.textSecondary)
+    }
+
     private var tagRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: AppSpacing.xs) {
                 AppTag(place.category.displayName)
-                AppTag(place.priceType.displayName)
 
                 if place.isChildFriendly {
                     AppTag("Çocukla uygun", iconName: "figure.and.child.holdinghands")
                 }
 
+                if place.isStudentFriendly {
+                    AppTag("Öğrenci dostu", iconName: "graduationcap")
+                }
+
                 if place.isOutdoor {
                     AppTag("Açık alan", iconName: "leaf")
                 }
+
+                if place.isIndoor {
+                    AppTag("Kapalı alan", iconName: "building.2")
+                }
+            }
+        }
+    }
+
+    private var durationText: String {
+        guard let minutes = place.averageVisitDurationMinutes else {
+            return "Süre bilinmiyor"
+        }
+
+        if minutes < 60 {
+            return "\(minutes) dk"
+        } else if minutes == 60 {
+            return "1 saat"
+        } else {
+            let hour = minutes / 60
+            let remaining = minutes % 60
+
+            if remaining == 0 {
+                return "\(hour) saat"
+            } else {
+                return "\(hour)s \(remaining)dk"
             }
         }
     }
