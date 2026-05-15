@@ -18,6 +18,8 @@ struct EventCard: View {
                         .lineLimit(3)
                         .multilineTextAlignment(.leading)
 
+                    dateCard
+
                     infoRow
 
                     tagRow
@@ -79,24 +81,65 @@ struct EventCard: View {
         }
     }
 
+    private var dateCard: some View {
+        HStack(spacing: AppSpacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: AppRadius.medium)
+                    .fill(AppColors.petrol)
+                    .frame(width: 56, height: 56)
+
+                VStack(spacing: 0) {
+                    Text(dayText)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+
+                    Text(monthText)
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(AppColors.cream)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                Text(event.startDate.gezioFormattedDate)
+                    .font(AppTypography.bodyMedium)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                if !event.startDate.gezioFormattedTime.isEmpty {
+                    Text(event.startDate.gezioFormattedTime)
+                        .font(AppTypography.captionMedium)
+                        .foregroundStyle(AppColors.teal)
+                }
+            }
+
+            Spacer()
+
+            AppTag(event.priceType.displayName, iconName: "ticket")
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cream.opacity(0.65))
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.large))
+    }
+
     private var infoRow: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            infoItem(
-                icon: "calendar",
-                text: event.startDate
-            )
-
-            infoItem(
-                icon: "ticket",
-                text: event.priceType.displayName
-            )
-
             if let district = event.district {
                 infoItem(
                     icon: "location",
                     text: district
                 )
             }
+
+            if let organizer = event.organizer {
+                infoItem(
+                    icon: "person.2",
+                    text: organizer
+                )
+            }
+
+            infoItem(
+                icon: event.isOutdoor ? "leaf" : "building.2",
+                text: event.isOutdoor ? "Açık hava etkinliği" : "Kapalı alan etkinliği"
+            )
         }
     }
 
@@ -116,7 +159,6 @@ struct EventCard: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: AppSpacing.xs) {
                 AppTag(event.category.displayName, iconName: event.category.iconName)
-                AppTag(event.priceType.displayName)
 
                 if event.isChildFriendly {
                     AppTag("Çocukla uygun", iconName: "figure.and.child.holdinghands")
@@ -131,6 +173,22 @@ struct EventCard: View {
                 }
             }
         }
+    }
+
+    private var dayText: String {
+        let formattedDate = event.startDate.gezioFormattedDate
+        return formattedDate.components(separatedBy: " ").first ?? ""
+    }
+
+    private var monthText: String {
+        let formattedDate = event.startDate.gezioFormattedDate
+        let components = formattedDate.components(separatedBy: " ")
+
+        guard components.count > 1 else {
+            return ""
+        }
+
+        return String(components[1].prefix(3)).uppercased()
     }
 }
 
@@ -173,10 +231,4 @@ struct EventCard: View {
     )
     .padding()
     .background(AppColors.background)
-}//
-//  EventCard.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 16.05.2026.
-//
-
+}
