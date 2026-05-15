@@ -28,6 +28,8 @@ struct ExploreView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     headerView
+                    
+                    searchSection
 
                     categorySection
 
@@ -55,6 +57,13 @@ struct ExploreView: View {
                 .lineSpacing(4)
         }
     }
+    
+    private var searchSection: some View {
+        SearchBarView(
+            text: $viewModel.searchText,
+            placeholder: "Mekan, ilçe veya kategori ara"
+        )
+    }
 
     private var categorySection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -66,7 +75,9 @@ struct ExploreView: View {
                 Spacer()
 
                 Button("Tümü") {
-                    navigate(.placeList(cityId: cityId, category: nil))
+                    withAnimation {
+                        viewModel.clearFilters()
+                    }
                 }
                 .font(AppTypography.captionMedium)
                 .foregroundStyle(AppColors.teal)
@@ -79,7 +90,13 @@ struct ExploreView: View {
                             category: category,
                             isSelected: viewModel.selectedCategory == category
                         ) {
-                            navigate(.placeList(cityId: cityId, category: category))
+                            withAnimation {
+                                if viewModel.selectedCategory == category {
+                                    viewModel.selectCategory(nil)
+                                } else {
+                                    viewModel.selectCategory(category)
+                                }
+                            }
                         }
                     }
                 }
@@ -100,13 +117,13 @@ struct ExploreView: View {
             }
         } else if viewModel.filteredPlaces.isEmpty {
             EmptyStateView(
-                title: "Mekan bulunamadı",
-                message: "Bu kategoride henüz mekan bulunmuyor. Tüm kategorileri görüntülemeyi deneyebilirsin.",
+                title: viewModel.emptyStateTitle,
+                message: viewModel.emptyStateMessage,
                 iconName: "mappin.slash",
-                buttonTitle: "Tümünü Göster"
+                buttonTitle: viewModel.hasActiveFilters ? "Filtreleri Temizle" : nil
             ) {
                 withAnimation {
-                    viewModel.selectCategory(nil)
+                    viewModel.clearFilters()
                 }
             }
 
@@ -140,7 +157,13 @@ struct ExploreView: View {
     }
 
     private var sectionTitle: String {
-        if let selectedCategory = viewModel.selectedCategory {
+        let query = viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !query.isEmpty, let selectedCategory = viewModel.selectedCategory {
+            return "\(selectedCategory.displayName) içinde arama"
+        } else if !query.isEmpty {
+            return "Arama sonuçları"
+        } else if let selectedCategory = viewModel.selectedCategory {
             return selectedCategory.displayName
         } else {
             return "Öne çıkan mekanlar"
