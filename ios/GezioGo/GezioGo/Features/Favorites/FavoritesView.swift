@@ -119,7 +119,7 @@ struct FavoritesView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.favoritePlaces) { place in
-                    PlaceCard(place: place) {
+                    PlaceCard(place: place, isFavorite: true) {
                         navigate(.placeDetail(place: place))
                     }
                     .contextMenu {

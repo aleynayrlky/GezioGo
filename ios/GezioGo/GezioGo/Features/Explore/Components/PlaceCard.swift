@@ -2,7 +2,18 @@ import SwiftUI
 
 struct PlaceCard: View {
     let place: Place
+    let isFavorite: Bool
     var action: (() -> Void)? = nil
+    
+    init(
+        place: Place,
+        isFavorite: Bool = false,
+        action: (() -> Void)? = nil
+    ) {
+        self.place = place
+        self.isFavorite = isFavorite
+        self.action = action
+    }
 
     var body: some View {
         Button {
@@ -50,10 +61,14 @@ struct PlaceCard: View {
 
             Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(AppColors.textSecondary)
-                .padding(.top, AppSpacing.xs)
+            VStack(spacing: AppSpacing.xs) {
+                FavoriteBadge(isFavorite: isFavorite)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+            .padding(.top, AppSpacing.xs)
         }
     }
 

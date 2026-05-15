@@ -2,6 +2,12 @@ import SwiftUI
 
 struct FeaturedPlaceCard: View {
     let place: Place
+    let isFavorite: Bool
+
+    init(place: Place, isFavorite: Bool = false) {
+        self.place = place
+        self.isFavorite = isFavorite
+    }
 
     var body: some View {
         AppCard {
@@ -19,8 +25,12 @@ struct FeaturedPlaceCard: View {
 
                     Spacer()
 
-                    Image(systemName: place.category.iconName)
-                        .foregroundStyle(AppColors.gold)
+                    VStack(spacing: AppSpacing.xs) {
+                        FavoriteBadge(isFavorite: isFavorite)
+
+                        Image(systemName: place.category.iconName)
+                            .foregroundStyle(AppColors.gold)
+                    }
                 }
 
                 Text(place.shortDescription)
@@ -31,6 +41,10 @@ struct FeaturedPlaceCard: View {
                 HStack {
                     AppTag(place.category.displayName)
                     AppTag(place.priceType.displayName)
+
+                    if isFavorite {
+                        AppTag("Favorilerde", iconName: "heart.fill")
+                    }
                 }
             }
         }
@@ -72,14 +86,9 @@ struct FeaturedPlaceCard: View {
             lastVerifiedAt: nil,
             createdAt: "",
             updatedAt: ""
-        )
+        ),
+        isFavorite: true
     )
     .padding()
     .background(AppColors.background)
-}//
-//  FeaturedPlaceCard.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}
