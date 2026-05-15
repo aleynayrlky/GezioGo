@@ -2,6 +2,8 @@ import SwiftUI
 
 struct PlaceDetailView: View {
     @StateObject private var viewModel: PlaceDetailViewModel
+    
+    private let mapService = MapService()
 
     init(place: Place) {
         _viewModel = StateObject(
@@ -179,7 +181,7 @@ struct PlaceDetailView: View {
             PlaceMapPreview(place: viewModel.place)
 
             AppButton(title: "Yol Tarifi Al", style: .outline) {
-                print("Yol tarifi: \(viewModel.place.latitude), \(viewModel.place.longitude)")
+                mapService.openDirections(to: viewModel.place)
             }
         }
     }
