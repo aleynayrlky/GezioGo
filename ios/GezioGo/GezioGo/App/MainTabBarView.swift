@@ -7,6 +7,7 @@ struct MainTabBarView: View {
     @State private var selectedTab: MainTab = .home
     @State private var homePath: [AppRoute] = []
     @State private var explorePath: [AppRoute] = []
+    @State private var mapPath: [AppRoute] = []
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -38,11 +39,15 @@ struct MainTabBarView: View {
             }
             .tag(MainTab.explore)
 
-            temporaryTabView(
-                title: "Harita",
-                message: "Yakındaki mekanları haritada görebileceğin ekran burada olacak.",
-                iconName: "map.fill"
-            )
+            NavigationStack(path: $mapPath) {
+                MapExploreView(cityId: cityId)
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destination(for: route)
+                    }
+            }
+            .environment(\.navigate) { route in
+                mapPath.append(route)
+            }
             .tabItem {
                 tabLabel(for: .map)
             }
