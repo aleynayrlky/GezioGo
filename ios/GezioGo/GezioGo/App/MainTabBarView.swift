@@ -104,45 +104,6 @@ struct MainTabBarView: View {
         )
     }
 
-    private func temporaryTabView(
-        title: String,
-        message: String,
-        iconName: String
-    ) -> some View {
-        ZStack {
-            AppColors.background
-                .ignoresSafeArea()
-
-            VStack(spacing: AppSpacing.lg) {
-                ZStack {
-                    Circle()
-                        .fill(AppColors.cream)
-                        .frame(width: 96, height: 96)
-
-                    Image(systemName: iconName)
-                        .font(.system(size: 40, weight: .semibold))
-                        .foregroundStyle(AppColors.petrol)
-                }
-
-                VStack(spacing: AppSpacing.sm) {
-                    Text(title)
-                        .font(AppTypography.title)
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    Text(message)
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, AppSpacing.xl)
-                }
-
-                AppTag("Yakında", iconName: "clock")
-            }
-            .padding(AppSpacing.lg)
-        }
-    }
-
     private func configureTabBarAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
