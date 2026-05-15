@@ -9,6 +9,7 @@ struct MainTabBarView: View {
     @State private var explorePath: [AppRoute] = []
     @State private var mapPath: [AppRoute] = []
     @State private var favoritesPath: [AppRoute] = []
+    @State private var profilePath: [AppRoute] = []
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -68,11 +69,9 @@ struct MainTabBarView: View {
             }
             .tag(MainTab.favorites)
 
-            temporaryTabView(
-                title: "Profil",
-                message: "Şehir tercihin, ayarlar ve hesap bilgilerin burada olacak.",
-                iconName: "person.fill"
-            )
+            NavigationStack(path: $profilePath) {
+                ProfileView(cityId: cityId)
+            }
             .tabItem {
                 tabLabel(for: .profile)
             }
