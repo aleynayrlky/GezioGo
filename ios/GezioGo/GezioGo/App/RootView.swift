@@ -39,7 +39,7 @@ struct RootView: View {
 
             case .main:
                 if let selectedCityId = appState.selectedCityId {
-                    HomeView(cityId: selectedCityId)
+                    ExploreView(cityId: selectedCityId)
                 } else {
                     CitySelectionView { city in
                         appState.selectCity(city)
