@@ -19,12 +19,12 @@ final class FavoritesService {
         }
 
         ids.append(placeId)
-        UserDefaults.standard.set(ids, forKey: favoritePlaceIdsKey)
+        saveFavoritePlaceIds(ids)
     }
 
     func removeFavorite(placeId: String) {
         let ids = getFavoritePlaceIds().filter { $0 != placeId }
-        UserDefaults.standard.set(ids, forKey: favoritePlaceIdsKey)
+        saveFavoritePlaceIds(ids)
     }
 
     func toggleFavorite(placeId: String) {
@@ -34,10 +34,17 @@ final class FavoritesService {
             addFavorite(placeId: placeId)
         }
     }
-}//
-//  FavoritesService.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
 
+    func clearFavorites() {
+        saveFavoritePlaceIds([])
+    }
+
+    private func saveFavoritePlaceIds(_ ids: [String]) {
+        UserDefaults.standard.set(ids, forKey: favoritePlaceIdsKey)
+        NotificationCenter.default.post(name: .favoritesDidChange, object: nil)
+    }
+}
+
+extension Notification.Name {
+    static let favoritesDidChange = Notification.Name("favoritesDidChange")
+}

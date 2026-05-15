@@ -32,6 +32,29 @@ struct FavoritesView: View {
         .task {
             await viewModel.loadFavorites()
         }
+        .onAppear {
+            Task {
+                await viewModel.refreshFavorites()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .favoritesDidChange)) { _ in
+            Task {
+                await viewModel.refreshFavorites()
+            }
+        }
+        .toolbar {
+            if !viewModel.favoritePlaces.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        viewModel.clearAllFavorites()
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundStyle(AppColors.error)
+                    }
+                    .accessibilityLabel("Tüm favorileri temizle")
+                }
+            }
+        }
     }
 
     private var headerView: some View {
@@ -106,6 +129,13 @@ struct FavoritesView: View {
                             Label("Favorilerden çıkar", systemImage: "heart.slash")
                         }
                     }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
+                            viewModel.removeFavorite(place)
+                        } label: {
+                            Label("Çıkar", systemImage: "heart.slash")
+                        }
+                    }
                 }
             }
         }
@@ -116,10 +146,4 @@ struct FavoritesView: View {
     NavigationStack {
         FavoritesView(cityId: "samsun")
     }
-}//
-//  FavoritesView.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}
