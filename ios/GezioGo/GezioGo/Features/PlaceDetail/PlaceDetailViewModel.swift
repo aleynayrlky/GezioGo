@@ -4,9 +4,30 @@ import Combine
 @MainActor
 final class PlaceDetailViewModel: ObservableObject {
     @Published var place: Place
+    @Published var isFavorite: Bool = false
 
-    init(place: Place) {
+    private let favoritesService: FavoritesService
+
+    init(
+        place: Place,
+        favoritesService: FavoritesService = FavoritesService()
+    ) {
         self.place = place
+        self.favoritesService = favoritesService
+        self.isFavorite = favoritesService.isFavorite(placeId: place.id)
+    }
+
+    func toggleFavorite() {
+        favoritesService.toggleFavorite(placeId: place.id)
+        isFavorite = favoritesService.isFavorite(placeId: place.id)
+    }
+
+    var favoriteButtonIcon: String {
+        isFavorite ? "heart.fill" : "heart"
+    }
+
+    var favoriteButtonTitle: String {
+        isFavorite ? "Favorilerden çıkar" : "Favoriye ekle"
     }
 
     var durationText: String {
@@ -53,10 +74,4 @@ final class PlaceDetailViewModel: ObservableObject {
             return "Alan bilgisi yok"
         }
     }
-}//
-//  PlaceDetailViewModel.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}

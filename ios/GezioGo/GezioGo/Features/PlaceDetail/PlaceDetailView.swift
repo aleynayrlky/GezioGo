@@ -31,6 +31,17 @@ struct PlaceDetailView: View {
         }
         .navigationTitle(viewModel.place.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    viewModel.toggleFavorite()
+                } label: {
+                    Image(systemName: viewModel.favoriteButtonIcon)
+                        .foregroundStyle(viewModel.isFavorite ? AppColors.gold : AppColors.petrol)
+                }
+                .accessibilityLabel(viewModel.favoriteButtonTitle)
+            }
+        }
     }
 
     private var heroSection: some View {
@@ -144,6 +155,9 @@ struct PlaceDetailView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.xs) {
+                    if viewModel.isFavorite {
+                        AppTag("Favorilerde", iconName: "heart.fill")
+                    }
                     AppTag(viewModel.childFriendlyText, iconName: "figure.and.child.holdinghands")
                     AppTag(viewModel.studentFriendlyText, iconName: "graduationcap")
                     AppTag(viewModel.accessibilityText, iconName: "accessibility")
