@@ -1,23 +1,42 @@
 import SwiftUI
+import UIKit
 
 struct MainTabBarView: View {
     let cityId: String
 
     @State private var selectedTab: MainTab = .home
+    @State private var homePath: [AppRoute] = []
+    @State private var explorePath: [AppRoute] = []
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeView(cityId: cityId)
-                .tabItem {
-                    tabLabel(for: .home)
-                }
-                .tag(MainTab.home)
+            NavigationStack(path: $homePath) {
+                HomeView(cityId: cityId)
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destination(for: route)
+                    }
+            }
+            .environment(\.navigate) { route in
+                homePath.append(route)
+            }
+            .tabItem {
+                tabLabel(for: .home)
+            }
+            .tag(MainTab.home)
 
-            ExploreView(cityId: cityId)
-                .tabItem {
-                    tabLabel(for: .explore)
-                }
-                .tag(MainTab.explore)
+            NavigationStack(path: $explorePath) {
+                ExploreView(cityId: cityId)
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destination(for: route)
+                    }
+            }
+            .environment(\.navigate) { route in
+                explorePath.append(route)
+            }
+            .tabItem {
+                tabLabel(for: .explore)
+            }
+            .tag(MainTab.explore)
 
             temporaryTabView(
                 title: "Harita",
@@ -52,6 +71,20 @@ struct MainTabBarView: View {
         .tint(AppColors.petrol)
         .onAppear {
             configureTabBarAppearance()
+        }
+    }
+
+    @ViewBuilder
+    private func destination(for route: AppRoute) -> some View {
+        switch route {
+        case .explore(let cityId):
+            ExploreView(cityId: cityId)
+
+        case .placeList(let cityId, let category):
+            PlaceListView(cityId: cityId, category: category)
+
+        case .placeDetail(let place):
+            PlaceDetailView(place: place)
         }
     }
 
@@ -113,10 +146,4 @@ struct MainTabBarView: View {
 
 #Preview {
     MainTabBarView(cityId: "samsun")
-}//
-//  MainTabBarView.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}

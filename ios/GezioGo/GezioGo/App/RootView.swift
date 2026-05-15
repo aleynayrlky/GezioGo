@@ -10,7 +10,6 @@ enum AppLaunchState {
 struct RootView: View {
     @StateObject private var appState = AppState()
     @State private var launchState: AppLaunchState = .splash
-    @State private var path: [AppRoute] = []
 
     var body: some View {
         Group {
@@ -40,24 +39,7 @@ struct RootView: View {
 
             case .main:
                 if let selectedCityId = appState.selectedCityId {
-                    NavigationStack(path: $path) {
-                        MainTabBarView(cityId: selectedCityId)
-                            .navigationDestination(for: AppRoute.self) { route in
-                                switch route {
-                                case .explore(let cityId):
-                                    ExploreView(cityId: cityId)
-
-                                case .placeList(let cityId, let category):
-                                    PlaceListView(cityId: cityId, category: category)
-
-                                case .placeDetail(let place):
-                                    PlaceDetailView(place: place)
-                                }
-                            }
-                    }
-                    .environment(\.navigate) { route in
-                        path.append(route)
-                    }
+                    MainTabBarView(cityId: selectedCityId)
                 } else {
                     CitySelectionView { city in
                         appState.selectCity(city)
