@@ -5,6 +5,7 @@ import MapKit
 @MainActor
 final class MapExploreViewModel: ObservableObject {
     @Published var places: [Place] = []
+    @Published var selectedPlace: Place?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -40,10 +41,20 @@ final class MapExploreViewModel: ObservableObject {
 
         do {
             places = try await dataService.fetchPlaces(cityId: cityId)
+            selectedPlace = places.first
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
+    }
+
+    func selectPlace(_ place: Place) {
+        selectedPlace = place
+
+        region.center = CLLocationCoordinate2D(
+            latitude: place.latitude,
+            longitude: place.longitude
+        )
     }
 }
