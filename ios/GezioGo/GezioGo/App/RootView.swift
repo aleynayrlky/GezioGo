@@ -41,7 +41,7 @@ struct RootView: View {
             case .main:
                 if let selectedCityId = appState.selectedCityId {
                     NavigationStack(path: $path) {
-                        HomeView(cityId: selectedCityId)
+                        MainTabBarView(cityId: selectedCityId)
                             .navigationDestination(for: AppRoute.self) { route in
                                 switch route {
                                 case .explore(let cityId):
