@@ -4,6 +4,7 @@ struct PlaceListView: View {
     let cityId: String
     let category: PlaceCategory?
 
+    @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: PlaceListViewModel
 
     init(cityId: String, category: PlaceCategory? = nil) {
@@ -128,7 +129,9 @@ struct PlaceListView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.filteredPlaces) { place in
-                    PlaceCard(place: place)
+                    PlaceCard(place: place) {
+                        navigate(.placeDetail(place: place))
+                    }
                 }
             }
         }

@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     let cityId: String
 
+    @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: HomeViewModel
 
     init(cityId: String) {
@@ -39,6 +40,10 @@ struct HomeView: View {
                         }
                     } else {
                         HomeHeroCard(city: viewModel.city)
+                        
+                        AppButton(title: "Keşfetmeye Başla") {
+                            navigate(.explore(cityId: cityId))
+                        }
 
                         categorySection
 
@@ -75,11 +80,14 @@ struct HomeView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.md) {
-                    CategoryShortcutView(category: .historical)
-                    CategoryShortcutView(category: .museum)
-                    CategoryShortcutView(category: .nature)
-                    CategoryShortcutView(category: .foodDrink)
-                    CategoryShortcutView(category: .family)
+                    ForEach([PlaceCategory.historical, .museum, .nature, .foodDrink, .family], id: \.self) { category in
+                        Button {
+                            navigate(.placeList(cityId: cityId, category: category))
+                        } label: {
+                            CategoryShortcutView(category: category)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }
@@ -101,7 +109,12 @@ struct HomeView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.places.prefix(3)) { place in
-                    FeaturedPlaceCard(place: place)
+                    Button {
+                        navigate(.placeDetail(place: place))
+                    } label: {
+                        FeaturedPlaceCard(place: place)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

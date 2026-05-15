@@ -10,6 +10,7 @@ import SwiftUI
 struct ExploreView: View {
     let cityId: String
 
+    @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: ExploreViewModel
 
     init(cityId: String) {
@@ -65,9 +66,7 @@ struct ExploreView: View {
                 Spacer()
 
                 Button("Tümü") {
-                    withAnimation {
-                        viewModel.selectCategory(nil)
-                    }
+                    navigate(.placeList(cityId: cityId, category: nil))
                 }
                 .font(AppTypography.captionMedium)
                 .foregroundStyle(AppColors.teal)
@@ -80,13 +79,7 @@ struct ExploreView: View {
                             category: category,
                             isSelected: viewModel.selectedCategory == category
                         ) {
-                            withAnimation {
-                                if viewModel.selectedCategory == category {
-                                    viewModel.selectCategory(nil)
-                                } else {
-                                    viewModel.selectCategory(category)
-                                }
-                            }
+                            navigate(.placeList(cityId: cityId, category: category))
                         }
                     }
                 }
@@ -166,7 +159,9 @@ struct ExploreView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.filteredPlaces) { place in
-                    PlaceCard(place: place)
+                    PlaceCard(place: place) {
+                        navigate(.placeDetail(place: place))
+                    }
                 }
             }
         }
