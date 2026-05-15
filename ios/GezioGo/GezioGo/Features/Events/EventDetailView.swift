@@ -2,6 +2,8 @@ import SwiftUI
 
 struct EventDetailView: View {
     @StateObject private var viewModel: EventDetailViewModel
+    
+    private let mapService = MapService()
 
     init(event: Event) {
         _viewModel = StateObject(
@@ -192,15 +194,62 @@ struct EventDetailView: View {
                         value: viewModel.locationText
                     )
 
-                    if viewModel.event.latitude != nil && viewModel.event.longitude != nil {
+                    if viewModel.hasCoordinate,
+                       let latitude = viewModel.latitude,
+                       let longitude = viewModel.longitude {
                         Divider()
 
-                        Text("Etkinlik konumu harita ve yol tarifi desteği için hazır.")
+                        ZStack(alignment: .bottomLeading) {
+                            RoundedRectangle(cornerRadius: AppRadius.large)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            AppColors.teal.opacity(0.18),
+                                            AppColors.gold.opacity(0.20)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(height: 160)
+
+                            VStack(spacing: AppSpacing.sm) {
+                                Image(systemName: "map.fill")
+                                    .font(.system(size: 38, weight: .semibold))
+                                    .foregroundStyle(AppColors.petrol)
+
+                                Image(systemName: "mappin.circle.fill")
+                                    .font(.system(size: 30, weight: .bold))
+                                    .foregroundStyle(AppColors.gold)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: 160)
+
+                            Text(viewModel.event.venueName)
+                                .font(AppTypography.captionMedium)
+                                .foregroundStyle(AppColors.petrol)
+                                .padding(.horizontal, AppSpacing.md)
+                                .padding(.vertical, AppSpacing.sm)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Capsule())
+                                .padding(AppSpacing.md)
+                        }
+
+                        AppButton(title: "Yol Tarifi Al", style: .outline) {
+                            mapService.openDirections(
+                                name: viewModel.event.venueName,
+                                latitude: latitude,
+                                longitude: longitude
+                            )
+                        }
+                    } else {
+                        Divider()
+
+                        Text("Bu etkinlik için koordinat bilgisi henüz eklenmemiş.")
                             .font(AppTypography.body)
                             .foregroundStyle(AppColors.textSecondary)
                             .lineSpacing(4)
 
-                        AppTag("Yol tarifi yakında", iconName: "map")
+                        AppTag("Konum bilgisi eksik", iconName: "mappin.slash")
                     }
                 }
             }

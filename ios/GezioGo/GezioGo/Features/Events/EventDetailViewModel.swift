@@ -62,10 +62,16 @@ final class EventDetailViewModel: ObservableObject {
     var organizerText: String {
         event.organizer ?? "Organizatör bilgisi yok"
     }
-}//
-//  EventDetailViewModel.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 16.05.2026.
-//
 
+    var hasCoordinate: Bool {
+        event.latitude != nil && event.longitude != nil
+    }
+
+    var latitude: Double? {
+        event.latitude
+    }
+
+    var longitude: Double? {
+        event.longitude
+    }
+}
