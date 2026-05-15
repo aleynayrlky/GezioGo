@@ -10,9 +10,31 @@
 		EE553A9F2FB74C5D00DA77BC /* GezioGo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GezioGo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EE553AEB2FB75CD100DA77BC /* Exceptions for "GezioGo" folder in "GezioGo" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Core/.gitkeep,
+				DesignSystem/.gitkeep,
+				Features/.gitkeep,
+				MockData/.gitkeep,
+				Models/.gitkeep,
+				Resources/JSON/.gitkeep,
+				Services/.gitkeep,
+				Utilities/.gitkeep,
+				Utilities/Extensions/.gitkeep,
+				Utilities/Helpers/.gitkeep,
+			);
+			target = EE553A9E2FB74C5D00DA77BC /* GezioGo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		EE553AA12FB74C5D00DA77BC /* GezioGo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EE553AEB2FB75CD100DA77BC /* Exceptions for "GezioGo" folder in "GezioGo" target */,
+			);
 			path = GezioGo;
 			sourceTree = "<group>";
 		};
