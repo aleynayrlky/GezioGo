@@ -21,6 +21,8 @@ struct EventsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     headerView
+                    
+                    searchSection
 
                     contentSection
                 }
@@ -48,6 +50,13 @@ struct EventsView: View {
                 .lineSpacing(4)
         }
     }
+    
+    private var searchSection: some View {
+        SearchBarView(
+            text: $viewModel.searchText,
+            placeholder: "Etkinlik, mekan veya kategori ara"
+        )
+    }
 
     @ViewBuilder
     private var contentSection: some View {
@@ -63,10 +72,15 @@ struct EventsView: View {
 
         } else if viewModel.upcomingEvents.isEmpty {
             EmptyStateView(
-                title: "Etkinlik bulunamadı",
-                message: "Bu şehir için henüz etkinlik eklenmemiş. Daha sonra tekrar kontrol edebilirsin.",
-                iconName: "calendar.badge.exclamationmark"
-            )
+                title: viewModel.emptyStateTitle,
+                message: viewModel.emptyStateMessage,
+                iconName: "calendar.badge.exclamationmark",
+                buttonTitle: viewModel.hasActiveSearch ? "Aramayı Temizle" : nil
+            ) {
+                withAnimation {
+                    viewModel.clearSearch()
+                }
+            }
 
         } else {
             eventsList
@@ -76,7 +90,7 @@ struct EventsView: View {
     private var eventsList: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text("Yaklaşan etkinlikler")
+                Text(viewModel.resultsTitle)
                     .font(AppTypography.subtitle)
                     .foregroundStyle(AppColors.textPrimary)
 
