@@ -123,9 +123,15 @@ struct HomeView: View {
     private var eventsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text("Yaklaşan etkinlikler")
-                    .font(AppTypography.subtitle)
-                    .foregroundStyle(AppColors.textPrimary)
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    Text("Yaklaşan etkinlikler")
+                        .font(AppTypography.subtitle)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Şehirde neler oluyor?")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
 
                 Spacer()
 
@@ -149,41 +155,7 @@ struct HomeView: View {
                             Button {
                                 navigate(.eventDetail(event: event))
                             } label: {
-                                HStack(alignment: .top, spacing: AppSpacing.md) {
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: AppRadius.medium)
-                                            .fill(AppColors.cream)
-                                            .frame(width: 44, height: 44)
-
-                                        Image(systemName: event.category.iconName)
-                                            .font(.system(size: 18, weight: .semibold))
-                                            .foregroundStyle(AppColors.petrol)
-                                    }
-
-                                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                                        Text(event.title)
-                                            .font(AppTypography.bodyMedium)
-                                            .foregroundStyle(AppColors.textPrimary)
-                                            .multilineTextAlignment(.leading)
-
-                                        Text(event.venueName)
-                                            .font(AppTypography.caption)
-                                            .foregroundStyle(AppColors.textSecondary)
-                                            .lineLimit(1)
-
-                                        HStack(spacing: AppSpacing.xs) {
-                                            AppTag(event.category.displayName, iconName: "calendar")
-                                            AppTag(event.startDate.gezioFormattedDate, iconName: "clock")
-                                        }
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                        .foregroundStyle(AppColors.textSecondary)
-                                        .padding(.top, AppSpacing.xs)
-                                }
+                                FeaturedEventCard(event: event)
                             }
                             .buttonStyle(.plain)
 
