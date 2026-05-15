@@ -1,11 +1,23 @@
 import Foundation
 import Combine
+import MapKit
 
 @MainActor
 final class MapExploreViewModel: ObservableObject {
     @Published var places: [Place] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+
+    @Published var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(
+            latitude: 41.2867,
+            longitude: 36.33
+        ),
+        span: MKCoordinateSpan(
+            latitudeDelta: 0.18,
+            longitudeDelta: 0.18
+        )
+    )
 
     private let cityId: String
     private let dataService: DataServiceProtocol
@@ -34,10 +46,4 @@ final class MapExploreViewModel: ObservableObject {
 
         isLoading = false
     }
-}//
-//  MapExploreViewModel.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}
