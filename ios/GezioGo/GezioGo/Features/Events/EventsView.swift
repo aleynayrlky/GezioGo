@@ -23,6 +23,8 @@ struct EventsView: View {
                     headerView
                     
                     searchSection
+                    
+                    categoryFilterSection
 
                     contentSection
                 }
@@ -57,6 +59,83 @@ struct EventsView: View {
             placeholder: "Etkinlik, mekan veya kategori ara"
         )
     }
+    
+    private var categoryFilterSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                Text("Kategori")
+                    .font(AppTypography.subtitle)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                if viewModel.hasActiveFilters {
+                    Button("Temizle") {
+                        withAnimation {
+                            viewModel.clearFilters()
+                        }
+                    }
+                    .font(AppTypography.captionMedium)
+                    .foregroundStyle(AppColors.teal)
+                }
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    Button {
+                        withAnimation {
+                            viewModel.selectCategory(nil)
+                        }
+                    } label: {
+                        filterChip(
+                            title: "Tümü",
+                            iconName: "square.grid.2x2",
+                            isSelected: viewModel.selectedCategory == nil
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    ForEach(viewModel.categories, id: \.self) { category in
+                        Button {
+                            withAnimation {
+                                if viewModel.selectedCategory == category {
+                                    viewModel.selectCategory(nil)
+                                } else {
+                                    viewModel.selectCategory(category)
+                                }
+                            }
+                        } label: {
+                            filterChip(
+                                title: category.displayName,
+                                iconName: category.iconName,
+                                isSelected: viewModel.selectedCategory == category
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func filterChip(
+        title: String,
+        iconName: String,
+        isSelected: Bool
+    ) -> some View {
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: iconName)
+                .font(.caption)
+
+            Text(title)
+                .font(AppTypography.captionMedium)
+        }
+        .foregroundStyle(isSelected ? .white : AppColors.petrol)
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.vertical, AppSpacing.sm)
+        .background(isSelected ? AppColors.petrol : AppColors.cream)
+        .clipShape(Capsule())
+    }
 
     @ViewBuilder
     private var contentSection: some View {
@@ -75,10 +154,10 @@ struct EventsView: View {
                 title: viewModel.emptyStateTitle,
                 message: viewModel.emptyStateMessage,
                 iconName: "calendar.badge.exclamationmark",
-                buttonTitle: viewModel.hasActiveSearch ? "Aramayı Temizle" : nil
+                buttonTitle: viewModel.hasActiveFilters ? "Filtreleri Temizle" : nil
             ) {
                 withAnimation {
-                    viewModel.clearSearch()
+                    viewModel.clearFilters()
                 }
             }
 

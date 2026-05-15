@@ -5,6 +5,7 @@ import Combine
 final class EventsViewModel: ObservableObject {
     @Published var events: [Event] = []
     @Published var searchText: String = ""
+    @Published var selectedCategory: EventCategory?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -19,36 +20,56 @@ final class EventsViewModel: ObservableObject {
         self.dataService = dataService ?? MockDataService()
     }
 
+    var categories: [EventCategory] {
+        EventCategory.allCases
+    }
+
     var upcomingEvents: [Event] {
+        var result = events
+
+        if let selectedCategory {
+            result = result.filter { $0.category == selectedCategory }
+        }
+
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !query.isEmpty else {
-            return events
+            return result
         }
 
-        return events.filter { event in
+        return result.filter { event in
             eventMatchesSearch(event, query: query)
         }
     }
 
-    var hasActiveSearch: Bool {
-        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    var hasActiveFilters: Bool {
+        selectedCategory != nil || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var emptyStateTitle: String {
-        hasActiveSearch ? "Sonuç bulunamadı" : "Etkinlik bulunamadı"
+        hasActiveFilters ? "Sonuç bulunamadı" : "Etkinlik bulunamadı"
     }
 
     var emptyStateMessage: String {
-        if hasActiveSearch {
-            return "Aramana uygun etkinlik bulunamadı. Farklı bir kelime deneyebilirsin."
+        if hasActiveFilters {
+            return "Aramana veya seçtiğin kategoriye uygun etkinlik bulunamadı. Farklı bir kelime ya da kategori deneyebilirsin."
         } else {
             return "Bu şehir için henüz etkinlik eklenmemiş. Daha sonra tekrar kontrol edebilirsin."
         }
     }
 
     var resultsTitle: String {
-        hasActiveSearch ? "Arama sonuçları" : "Yaklaşan etkinlikler"
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !query.isEmpty, let selectedCategory {
+            return "\(selectedCategory.displayName) içinde arama"
+        } else if !query.isEmpty {
+            return "Arama sonuçları"
+        } else if let selectedCategory {
+            return selectedCategory.displayName
+        } else {
+            return "Yaklaşan etkinlikler"
+        }
     }
 
     func loadEvents() async {
@@ -64,7 +85,12 @@ final class EventsViewModel: ObservableObject {
         isLoading = false
     }
 
-    func clearSearch() {
+    func selectCategory(_ category: EventCategory?) {
+        selectedCategory = category
+    }
+
+    func clearFilters() {
+        selectedCategory = nil
         searchText = ""
     }
 
