@@ -57,10 +57,7 @@ struct RouteMapView: View {
             annotationItems: coordinateStops
         ) { stop in
             MapAnnotation(
-                coordinate: CLLocationCoordinate2D(
-                    latitude: stop.latitude ?? 41.2867,
-                    longitude: stop.longitude ?? 36.33
-                )
+                coordinate: coordinate(for: stop) ?? region.center
             ) {
                 Button {
                     withAnimation {
@@ -73,6 +70,18 @@ struct RouteMapView: View {
                 .buttonStyle(.plain)
             }
         }
+    }
+    
+    private func coordinate(for stop: RouteStop) -> CLLocationCoordinate2D? {
+        guard let latitude = stop.latitude,
+              let longitude = stop.longitude else {
+            return nil
+        }
+
+        return CLLocationCoordinate2D(
+            latitude: latitude,
+            longitude: longitude
+        )
     }
 
     private var emptyMapState: some View {
@@ -166,26 +175,62 @@ struct RouteMapView: View {
             return
         }
 
-        region.center = CLLocationCoordinate2D(
-            latitude: latitude,
-            longitude: longitude
+        region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: latitude,
+                longitude: longitude
+            ),
+            span: MKCoordinateSpan(
+                latitudeDelta: 0.04,
+                longitudeDelta: 0.04
+            )
         )
     }
 
     private func configureInitialRegion() {
-        guard let firstStop = coordinateStops.first,
-              let latitude = firstStop.latitude,
-              let longitude = firstStop.longitude else {
+        let coordinates = coordinateStops.compactMap { stop in
+            coordinate(for: stop)
+        }
+
+        guard let firstCoordinate = coordinates.first else {
             return
         }
 
-        region.center = CLLocationCoordinate2D(
-            latitude: latitude,
-            longitude: longitude
+        guard coordinates.count > 1 else {
+            region = MKCoordinateRegion(
+                center: firstCoordinate,
+                span: MKCoordinateSpan(
+                    latitudeDelta: 0.03,
+                    longitudeDelta: 0.03
+                )
+            )
+            return
+        }
+
+        let latitudes = coordinates.map { $0.latitude }
+        let longitudes = coordinates.map { $0.longitude }
+
+        guard let minLatitude = latitudes.min(),
+              let maxLatitude = latitudes.max(),
+              let minLongitude = longitudes.min(),
+              let maxLongitude = longitudes.max() else {
+            return
+        }
+
+        let center = CLLocationCoordinate2D(
+            latitude: (minLatitude + maxLatitude) / 2,
+            longitude: (minLongitude + maxLongitude) / 2
         )
 
-        if selectedStop == nil {
-            selectedStop = firstStop
-        }
+        let latitudeDelta = max((maxLatitude - minLatitude) * 1.8, 0.05)
+        let longitudeDelta = max((maxLongitude - minLongitude) * 1.8, 0.05)
+
+        region = MKCoordinateRegion(
+            center: center,
+            span: MKCoordinateSpan(
+                latitudeDelta: latitudeDelta,
+                longitudeDelta: longitudeDelta
+            )
+        )
     }
 }
