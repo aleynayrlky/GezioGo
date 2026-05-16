@@ -120,7 +120,7 @@ final class RouteDetailViewModel: ObservableObject {
             "",
             shareStopsText,
             "",
-            "GezioGo ile şehri planlı ve keyifli şekilde keşfet."
+            "Bu rota GezioGo ile hazırlandı. Şehri planlı ve keyifli şekilde keşfet."
         ]
         .filter { !$0.isEmpty }
         .joined(separator: "\n")
