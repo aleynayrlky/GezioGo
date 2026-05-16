@@ -13,15 +13,18 @@ final class RouteDetailViewModel: ObservableObject {
 
     private let dataService: DataServiceProtocol
     private let savedRoutesService: SavedRoutesService
+    private let mapService: MapService
 
     init(
         route: TripRoute,
         dataService: DataServiceProtocol? = nil,
-        savedRoutesService: SavedRoutesService = .shared
+        savedRoutesService: SavedRoutesService = .shared,
+        mapService: MapService = MapService()
     ) {
         self.route = route
         self.dataService = dataService ?? MockDataService()
         self.savedRoutesService = savedRoutesService
+        self.mapService = mapService
         self.isSaved = savedRoutesService.isSaved(routeId: route.id)
     }
 
@@ -104,14 +107,48 @@ final class RouteDetailViewModel: ObservableObject {
     var sortedStops: [RouteStop] {
         route.stops.sorted { $0.order < $1.order }
     }
-    
+
+    var firstNavigableStop: RouteStop? {
+        sortedStops.first { stop in
+            canOpenDirections(for: stop)
+        }
+    }
+
+    var selectedStopCanOpenDirections: Bool {
+        guard let selectedStop else {
+            return false
+        }
+
+        return canOpenDirections(for: selectedStop)
+    }
+
     func toggleSaved() {
         savedRoutesService.toggle(routeId: route.id)
         isSaved = savedRoutesService.isSaved(routeId: route.id)
     }
-    
+
     func refreshSavedState() {
         isSaved = savedRoutesService.isSaved(routeId: route.id)
+    }
+
+    func canOpenDirections(for stop: RouteStop) -> Bool {
+        mapService.canOpenDirections(for: stop)
+    }
+
+    func openDirections(for stop: RouteStop) {
+        guard canOpenDirections(for: stop) else {
+            return
+        }
+
+        mapService.openDirections(to: stop)
+    }
+
+    func startRoute() {
+        guard let firstNavigableStop else {
+            return
+        }
+
+        openDirections(for: firstNavigableStop)
     }
 
     func loadPlaces() async {
@@ -134,6 +171,7 @@ final class RouteDetailViewModel: ObservableObject {
 
         isLoadingPlaces = false
     }
+
     func place(for stop: RouteStop) -> Place? {
         guard let placeId = stop.placeId else {
             return nil
@@ -141,7 +179,7 @@ final class RouteDetailViewModel: ObservableObject {
 
         return places.first { $0.id == placeId }
     }
-    
+
     func event(for stop: RouteStop) -> Event? {
         guard let eventId = stop.eventId else {
             return nil
