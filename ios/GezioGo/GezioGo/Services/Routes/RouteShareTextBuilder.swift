@@ -41,6 +41,10 @@ enum RouteShareTextBuilder {
         if let tempo = route.tempo {
             lines.append("Tempo: \(tempo.displayName)")
         }
+        
+        if let companions = route.companions, !companions.isEmpty {
+            lines.append("Kimler için: \(companionDisplayName(companions))")
+        }
 
         if let budget = route.estimatedCostLevel ?? route.budget {
             lines.append("Tahmini bütçe: \(budget.displayName)")
@@ -55,6 +59,23 @@ enum RouteShareTextBuilder {
         }
 
         return lines.joined(separator: "\n")
+    }
+    
+    private static func companionDisplayName(_ companions: String) -> String {
+        switch companions {
+        case "solo":
+            return "Tek başına"
+        case "friends":
+            return "Arkadaşlarla"
+        case "family":
+            return "Aileyle"
+        case "couple":
+            return "Çift olarak"
+        case "everyone":
+            return "Herkes için uygun"
+        default:
+            return companions
+        }
     }
 
     private static func shareStopsText(for route: TripRoute) -> String {

@@ -95,7 +95,7 @@ final class RouteDetailViewModel: ObservableObject {
             return "Herkes için uygun"
         }
 
-        return companions
+        return companionDisplayName(companions)
     }
 
     var interestsText: String {
@@ -224,6 +224,23 @@ final class RouteDetailViewModel: ObservableObject {
             return "Kültür"
         default:
             return interest
+        }
+    }
+    
+    func companionDisplayName(_ companions: String) -> String {
+        switch companions {
+        case "solo":
+            return "Tek başına"
+        case "friends":
+            return "Arkadaşlarla"
+        case "family":
+            return "Aileyle"
+        case "couple":
+            return "Çift olarak"
+        case "everyone":
+            return "Herkes için uygun"
+        default:
+            return companions
         }
     }
 
