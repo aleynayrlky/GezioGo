@@ -33,6 +33,8 @@ struct RoutesView: View {
                     tempoFilterSection
 
                     savedOnlyFilterSection
+                    
+                    activeFiltersSummaryView
 
                     contentSection
                 }
@@ -82,16 +84,6 @@ struct RoutesView: View {
                     .foregroundStyle(AppColors.textPrimary)
 
                 Spacer()
-
-                if viewModel.hasActiveFilters {
-                    Button("Temizle") {
-                        withAnimation {
-                            viewModel.clearFilters()
-                        }
-                    }
-                    .font(AppTypography.captionMedium)
-                    .foregroundStyle(AppColors.teal)
-                }
             }
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -258,7 +250,7 @@ struct RoutesView: View {
                 Image(systemName: viewModel.showSavedOnly ? "bookmark.fill" : "bookmark")
                     .font(.caption)
 
-                Text("Sadece kaydedilen rotalar")
+                Text("Kaydedilenler")
                     .font(AppTypography.captionMedium)
 
                 Spacer()
@@ -275,6 +267,35 @@ struct RoutesView: View {
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.large))
         }
         .buttonStyle(.plain)
+    }
+    
+    @ViewBuilder
+    private var activeFiltersSummaryView: some View {
+        if let summary = viewModel.activeFilterSummary {
+            HStack(alignment: .top, spacing: AppSpacing.sm) {
+                Image(systemName: "line.3.horizontal.decrease.circle")
+                    .font(.caption)
+                    .foregroundStyle(AppColors.teal)
+
+                Text(summary)
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+                    .lineLimit(2)
+
+                Spacer()
+
+                Button("Temizle") {
+                    withAnimation {
+                        viewModel.clearFilters()
+                    }
+                }
+                .font(AppTypography.captionMedium)
+                .foregroundStyle(AppColors.teal)
+            }
+            .padding(AppSpacing.sm)
+            .background(AppColors.cream.opacity(0.7))
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium))
+        }
     }
     
     private func filterChip(

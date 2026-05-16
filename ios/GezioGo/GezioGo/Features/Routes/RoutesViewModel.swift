@@ -143,6 +143,42 @@ final class RoutesViewModel: ObservableObject {
 
         return "Önerilen rotalar"
     }
+    
+    var activeFilterSummary: String? {
+        var filters: [String] = []
+
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !query.isEmpty {
+            filters.append("Arama: \(query)")
+        }
+
+        if let selectedInterest {
+            filters.append(interestDisplayName(selectedInterest))
+        }
+
+        if let selectedDurationType {
+            filters.append(durationTypeText(selectedDurationType))
+        }
+
+        if let selectedTransportType {
+            filters.append(selectedTransportType.displayName)
+        }
+
+        if let selectedTempo {
+            filters.append(selectedTempo.displayName)
+        }
+
+        if showSavedOnly {
+            filters.append("Kaydedilenler")
+        }
+
+        guard !filters.isEmpty else {
+            return nil
+        }
+
+        return filters.joined(separator: " • ")
+    }
 
     func loadRoutes() async {
         isLoading = true
