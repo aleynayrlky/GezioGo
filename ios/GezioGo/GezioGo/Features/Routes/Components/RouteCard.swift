@@ -18,7 +18,9 @@ struct RouteCard: View {
                         .lineLimit(3)
                         .multilineTextAlignment(.leading)
 
-                    infoRow
+                    summaryGrid
+
+                    stopsPreview
 
                     tagRow
                 }
@@ -38,7 +40,7 @@ struct RouteCard: View {
                     .foregroundStyle(AppColors.textPrimary)
                     .multilineTextAlignment(.leading)
 
-                Text(route.interestsText)
+                Text(route.interestsText.isEmpty ? "Hazır gezi rotası" : route.interestsText)
                     .font(AppTypography.captionMedium)
                     .foregroundStyle(AppColors.teal)
                     .lineLimit(1)
@@ -59,52 +61,121 @@ struct RouteCard: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            AppColors.cream,
-                            AppColors.gold.opacity(0.18)
+                            AppColors.petrol,
+                            AppColors.teal
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 56, height: 56)
+                .frame(width: 58, height: 58)
 
-            Image(systemName: "map")
+            Image(systemName: routeIconName)
                 .font(.title3)
-                .foregroundStyle(AppColors.petrol)
+                .foregroundStyle(AppColors.gold)
         }
     }
 
-    private var infoRow: some View {
-        HStack(spacing: AppSpacing.md) {
-            infoItem(
-                icon: "clock",
-                text: durationText
+    private var summaryGrid: some View {
+        HStack(spacing: AppSpacing.sm) {
+            summaryItem(
+                iconName: "clock",
+                title: "Süre",
+                value: durationText
             )
 
-            infoItem(
-                icon: "mappin.and.ellipse",
-                text: "\(route.stops.count) durak"
+            summaryItem(
+                iconName: "mappin.and.ellipse",
+                title: "Durak",
+                value: "\(route.stops.count)"
             )
 
-            if let transportType = route.transportType {
-                infoItem(
-                    icon: "figure.walk",
-                    text: transportType.displayName
-                )
-            }
+            summaryItem(
+                iconName: "speedometer",
+                title: "Tempo",
+                value: route.tempo?.displayName ?? "Dengeli"
+            )
         }
     }
 
-    private func infoItem(icon: String, text: String) -> some View {
-        HStack(spacing: AppSpacing.xxs) {
-            Image(systemName: icon)
+    private func summaryItem(
+        iconName: String,
+        title: String,
+        value: String
+    ) -> some View {
+        VStack(spacing: AppSpacing.xxs) {
+            Image(systemName: iconName)
                 .font(.caption)
+                .foregroundStyle(AppColors.petrol)
 
-            Text(text)
+            Text(value)
+                .font(AppTypography.captionMedium)
+                .foregroundStyle(AppColors.textPrimary)
+                .lineLimit(1)
+
+            Text(title)
                 .font(AppTypography.caption)
+                .foregroundStyle(AppColors.textSecondary)
                 .lineLimit(1)
         }
-        .foregroundStyle(AppColors.textSecondary)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.sm)
+        .background(AppColors.cream.opacity(0.7))
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium))
+    }
+
+    private var stopsPreview: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text("Duraklar")
+                .font(AppTypography.captionMedium)
+                .foregroundStyle(AppColors.textPrimary)
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                ForEach(route.stops.prefix(3)) { stop in
+                    HStack(spacing: AppSpacing.sm) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.petrol)
+                                .frame(width: 22, height: 22)
+
+                            Text("\(stop.order)")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(stop.title)
+                                .font(AppTypography.captionMedium)
+                                .foregroundStyle(AppColors.textPrimary)
+                                .lineLimit(1)
+
+                            if let timeLabel = stop.timeLabel {
+                                Text(timeLabel)
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(AppColors.textSecondary)
+                                    .lineLimit(1)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                }
+
+                if route.stops.count > 3 {
+                    Text("+\(route.stops.count - 3) durak daha")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.teal)
+                        .padding(.leading, 30)
+                }
+            }
+        }
+        .padding(AppSpacing.sm)
+        .background(AppColors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.large))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.large)
+                .stroke(AppColors.textSecondary.opacity(0.12), lineWidth: 1)
+        )
     }
 
     private var tagRow: some View {
@@ -112,8 +183,8 @@ struct RouteCard: View {
             HStack(spacing: AppSpacing.xs) {
                 AppTag(durationTypeText, iconName: "calendar")
 
-                if let tempo = route.tempo {
-                    AppTag(tempo.displayName, iconName: "speedometer")
+                if let transportType = route.transportType {
+                    AppTag(transportType.displayName, iconName: transportIconName)
                 }
 
                 if let budget = route.estimatedCostLevel ?? route.budget {
@@ -171,12 +242,55 @@ struct RouteCard: View {
             return "Özel"
         }
     }
+
+    private var routeIconName: String {
+        if route.interests.contains("history") {
+            return "building.columns"
+        } else if route.interests.contains("nature") {
+            return "leaf"
+        } else if route.interests.contains("food_drink") {
+            return "fork.knife"
+        } else {
+            return "map"
+        }
+    }
+
+    private var transportIconName: String {
+        switch route.transportType {
+        case .walking:
+            return "figure.walk"
+        case .publicTransport:
+            return "tram"
+        case .car:
+            return "car"
+        case .mixed:
+            return "arrow.triangle.swap"
+        case .none:
+            return "map"
+        }
+    }
 }
 
 private extension TripRoute {
     var interestsText: String {
         interests
             .prefix(2)
+            .map { interest in
+                switch interest {
+                case "history":
+                    return "Tarih"
+                case "nature":
+                    return "Doğa"
+                case "food_drink":
+                    return "Yeme İçme"
+                case "museum":
+                    return "Müze"
+                case "family":
+                    return "Aile"
+                default:
+                    return interest
+                }
+            }
             .joined(separator: ", ")
     }
 }
