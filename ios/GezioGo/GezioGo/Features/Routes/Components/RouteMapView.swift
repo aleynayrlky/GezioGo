@@ -17,6 +17,31 @@ struct RouteMapView: View {
     )
 
     var body: some View {
+        ZStack {
+            if mappableStops.isEmpty {
+                emptyMapState
+            } else {
+                mapContent
+            }
+        }
+        .frame(height: 300)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.xlarge))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.xlarge)
+                .stroke(AppColors.textSecondary.opacity(0.12), lineWidth: 1)
+        )
+        .shadow(
+            color: Color.black.opacity(0.08),
+            radius: 12,
+            x: 0,
+            y: 6
+        )
+        .onAppear {
+            configureInitialRegion()
+        }
+    }
+
+    private var mapContent: some View {
         Map(
             coordinateRegion: $region,
             annotationItems: mappableStops
@@ -38,20 +63,37 @@ struct RouteMapView: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(height: 280)
-        .clipShape(RoundedRectangle(cornerRadius: AppRadius.xlarge))
-        .overlay(
-            RoundedRectangle(cornerRadius: AppRadius.xlarge)
-                .stroke(AppColors.textSecondary.opacity(0.12), lineWidth: 1)
-        )
-        .shadow(
-            color: Color.black.opacity(0.08),
-            radius: 12,
-            x: 0,
-            y: 6
-        )
-        .onAppear {
-            configureInitialRegion()
+    }
+
+    private var emptyMapState: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    AppColors.cream,
+                    AppColors.gold.opacity(0.16)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            VStack(spacing: AppSpacing.md) {
+                Image(systemName: "map")
+                    .font(.system(size: 42, weight: .semibold))
+                    .foregroundStyle(AppColors.petrol)
+
+                VStack(spacing: AppSpacing.xs) {
+                    Text("Harita bilgisi yok")
+                        .font(AppTypography.bodyMedium)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Bu rota durakları için koordinat bilgisi henüz eklenmemiş.")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(3)
+                }
+                .padding(.horizontal, AppSpacing.lg)
+            }
         }
     }
 
@@ -62,25 +104,60 @@ struct RouteMapView: View {
     }
 
     private func routePin(for stop: RouteStop) -> some View {
-        VStack(spacing: 3) {
+        let selected = isSelected(stop)
+
+        return VStack(spacing: 4) {
             ZStack {
                 Circle()
-                    .fill(isSelected(stop) ? AppColors.gold : AppColors.petrol)
-                    .frame(width: 34, height: 34)
+                    .fill(selected ? AppColors.gold : AppColors.petrol)
+                    .frame(
+                        width: selected ? 44 : 36,
+                        height: selected ? 44 : 36
+                    )
+                    .shadow(
+                        color: Color.black.opacity(selected ? 0.24 : 0.12),
+                        radius: selected ? 8 : 4,
+                        x: 0,
+                        y: selected ? 5 : 2
+                    )
 
-                Text("\(stop.order)")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white)
+                VStack(spacing: 0) {
+                    Text("\(stop.order)")
+                        .font(.system(size: selected ? 15 : 13, weight: .bold))
+                        .foregroundStyle(.white)
+
+                    Image(systemName: stopIconName(for: stop.type))
+                        .font(.system(size: selected ? 9 : 8, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                }
             }
 
-            Text(stop.title)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(AppColors.textPrimary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(AppColors.cardBackground.opacity(0.92))
-                .clipShape(Capsule())
-                .lineLimit(1)
+            if selected {
+                Text(stop.title)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppColors.textPrimary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AppColors.cardBackground.opacity(0.94))
+                    .clipShape(Capsule())
+                    .lineLimit(1)
+                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+            }
+        }
+    }
+
+    private func stopIconName(for type: RouteStopType) -> String {
+        switch type {
+        case .place:
+            return "mappin"
+        case .event:
+            return "calendar"
+        case .food:
+            return "fork.knife"
+        case .breakTime:
+            return "cup.and.saucer"
+        case .other:
+            return "sparkles"
         }
     }
 
