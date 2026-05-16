@@ -20,6 +20,8 @@ struct RouteDetailView: View {
                     heroSection
 
                     summarySection
+                    
+                    mapSection
 
                     interestsSection
 
@@ -138,6 +140,74 @@ struct RouteDetailView: View {
             }
         }
     }
+    
+    private var mapSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                Text("Rota haritası")
+                    .font(AppTypography.subtitle)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                Text("\(viewModel.sortedStops.count) durak")
+                    .font(AppTypography.captionMedium)
+                    .foregroundStyle(AppColors.teal)
+            }
+
+            RouteMapView(
+                stops: viewModel.sortedStops,
+                selectedStop: $viewModel.selectedStop
+            )
+
+            selectedStopSummary
+        }
+    }
+    
+    @ViewBuilder
+    private var selectedStopSummary: some View {
+        if let selectedStop = viewModel.selectedStop {
+            AppCard {
+                HStack(alignment: .top, spacing: AppSpacing.md) {
+                    ZStack {
+                        Circle()
+                            .fill(AppColors.gold)
+                            .frame(width: 40, height: 40)
+
+                        Text("\(selectedStop.order)")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        HStack(spacing: AppSpacing.xs) {
+                            AppTag(
+                                viewModel.stopTypeText(selectedStop.type),
+                                iconName: viewModel.stopTypeIcon(selectedStop.type)
+                            )
+
+                            if let timeLabel = selectedStop.timeLabel {
+                                AppTag(timeLabel, iconName: "clock")
+                            }
+                        }
+
+                        Text(selectedStop.title)
+                            .font(AppTypography.bodyMedium)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        if let note = selectedStop.note {
+                            Text(note)
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .lineSpacing(3)
+                        }
+                    }
+
+                    Spacer()
+                }
+            }
+        }
+    }
 
     private var interestsSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -186,7 +256,14 @@ struct RouteDetailView: View {
                 }
 
                 ForEach(viewModel.sortedStops) { stop in
-                    stopCard(stop)
+                    Button {
+                        withAnimation {
+                            viewModel.selectedStop = stop
+                        }
+                    } label: {
+                        stopCard(stop)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -201,7 +278,7 @@ struct RouteDetailView: View {
                     VStack(spacing: AppSpacing.xs) {
                         ZStack {
                             Circle()
-                                .fill(AppColors.petrol)
+                                .fill(viewModel.selectedStop?.id == stop.id ? AppColors.gold : AppColors.petrol)
                                 .frame(width: 34, height: 34)
 
                             Text("\(stop.order)")

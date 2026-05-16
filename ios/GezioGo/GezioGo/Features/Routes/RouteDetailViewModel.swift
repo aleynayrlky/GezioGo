@@ -4,6 +4,7 @@ import Combine
 @MainActor
 final class RouteDetailViewModel: ObservableObject {
     @Published var route: TripRoute
+    @Published var selectedStop: RouteStop?
     @Published var places: [Place] = []
     @Published var isLoadingPlaces = false
     @Published var placeLoadErrorMessage: String?
@@ -104,6 +105,10 @@ final class RouteDetailViewModel: ObservableObject {
 
         do {
             places = try await dataService.fetchPlaces(cityId: route.cityId)
+
+            if selectedStop == nil {
+                selectedStop = sortedStops.first
+            }
         } catch {
             placeLoadErrorMessage = error.localizedDescription
         }
