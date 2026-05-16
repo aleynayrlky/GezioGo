@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RouteDetailView: View {
+    @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: RouteDetailViewModel
 
     init(route: TripRoute) {
@@ -31,6 +32,9 @@ struct RouteDetailView: View {
         }
         .navigationTitle(viewModel.route.title)
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await viewModel.loadPlaces()
+        }
     }
 
     private var heroSection: some View {
@@ -169,6 +173,18 @@ struct RouteDetailView: View {
             }
 
             VStack(spacing: AppSpacing.md) {
+                if viewModel.isLoadingPlaces {
+                    LoadingView("Rota durakları hazırlanıyor...")
+                }
+
+                if let errorMessage = viewModel.placeLoadErrorMessage {
+                    ErrorStateView(message: errorMessage) {
+                        Task {
+                            await viewModel.loadPlaces()
+                        }
+                    }
+                }
+
                 ForEach(viewModel.sortedStops) { stop in
                     stopCard(stop)
                 }
@@ -177,55 +193,85 @@ struct RouteDetailView: View {
     }
 
     private func stopCard(_ stop: RouteStop) -> some View {
-        AppCard {
-            HStack(alignment: .top, spacing: AppSpacing.md) {
-                VStack(spacing: AppSpacing.xs) {
-                    ZStack {
-                        Circle()
-                            .fill(AppColors.petrol)
-                            .frame(width: 34, height: 34)
+        let relatedPlace = viewModel.place(for: stop)
 
-                        Text("\(stop.order)")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.white)
+        return AppCard {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                HStack(alignment: .top, spacing: AppSpacing.md) {
+                    VStack(spacing: AppSpacing.xs) {
+                        ZStack {
+                            Circle()
+                                .fill(AppColors.petrol)
+                                .frame(width: 34, height: 34)
+
+                            Text("\(stop.order)")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+
+                        Rectangle()
+                            .fill(AppColors.textSecondary.opacity(0.18))
+                            .frame(width: 2, height: 32)
                     }
 
-                    Rectangle()
-                        .fill(AppColors.textSecondary.opacity(0.18))
-                        .frame(width: 2, height: 32)
-                }
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        HStack {
+                            AppTag(
+                                viewModel.stopTypeText(stop.type),
+                                iconName: viewModel.stopTypeIcon(stop.type)
+                            )
 
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    HStack {
-                        AppTag(
-                            viewModel.stopTypeText(stop.type),
-                            iconName: viewModel.stopTypeIcon(stop.type)
-                        )
+                            if let timeLabel = stop.timeLabel {
+                                AppTag(timeLabel, iconName: "clock")
+                            }
 
-                        if let timeLabel = stop.timeLabel {
-                            AppTag(timeLabel, iconName: "clock")
+                            if relatedPlace != nil {
+                                AppTag("Detay var", iconName: "chevron.right")
+                            }
+                        }
+
+                        Text(stop.title)
+                            .font(AppTypography.bodyMedium)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        if let durationMinutes = stop.durationMinutes {
+                            Text("\(durationMinutes) dk önerilir")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+
+                        if let note = stop.note {
+                            Text(note)
+                                .font(AppTypography.body)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .lineSpacing(3)
                         }
                     }
 
-                    Text(stop.title)
-                        .font(AppTypography.bodyMedium)
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    if let durationMinutes = stop.durationMinutes {
-                        Text("\(durationMinutes) dk önerilir")
-                            .font(AppTypography.caption)
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-
-                    if let note = stop.note {
-                        Text(note)
-                            .font(AppTypography.body)
-                            .foregroundStyle(AppColors.textSecondary)
-                            .lineSpacing(3)
-                    }
+                    Spacer()
                 }
 
-                Spacer()
+                if let relatedPlace {
+                    Button {
+                        navigate(.placeDetail(place: relatedPlace))
+                    } label: {
+                        HStack {
+                            Image(systemName: "mappin.and.ellipse")
+                                .font(.caption)
+
+                            Text("Mekan detayını aç")
+                                .font(AppTypography.captionMedium)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(AppColors.teal)
+                        .padding(.top, AppSpacing.xs)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }

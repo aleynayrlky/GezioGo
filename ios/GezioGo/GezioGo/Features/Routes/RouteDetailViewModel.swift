@@ -4,9 +4,18 @@ import Combine
 @MainActor
 final class RouteDetailViewModel: ObservableObject {
     @Published var route: TripRoute
+    @Published var places: [Place] = []
+    @Published var isLoadingPlaces = false
+    @Published var placeLoadErrorMessage: String?
 
-    init(route: TripRoute) {
+    private let dataService: DataServiceProtocol
+
+    init(
+        route: TripRoute,
+        dataService: DataServiceProtocol? = nil
+    ) {
         self.route = route
+        self.dataService = dataService ?? MockDataService()
     }
 
     var durationText: String {
@@ -87,6 +96,27 @@ final class RouteDetailViewModel: ObservableObject {
 
     var sortedStops: [RouteStop] {
         route.stops.sorted { $0.order < $1.order }
+    }
+
+    func loadPlaces() async {
+        isLoadingPlaces = true
+        placeLoadErrorMessage = nil
+
+        do {
+            places = try await dataService.fetchPlaces(cityId: route.cityId)
+        } catch {
+            placeLoadErrorMessage = error.localizedDescription
+        }
+
+        isLoadingPlaces = false
+    }
+
+    func place(for stop: RouteStop) -> Place? {
+        guard let placeId = stop.placeId else {
+            return nil
+        }
+
+        return places.first { $0.id == placeId }
     }
 
     func interestDisplayName(_ interest: String) -> String {
