@@ -3,9 +3,11 @@ import SwiftUI
 struct SelectedRouteStopCard: View {
     let stop: RouteStop
     let relatedPlace: Place?
+    let relatedEvent: Event?
     let stopTypeTitle: String
     let stopTypeIconName: String
-    var openPlaceDetail: (() -> Void)? = nil
+    let actionTitle: String?
+    var openDetail: (() -> Void)? = nil
 
     var body: some View {
         AppCard {
@@ -23,17 +25,17 @@ struct SelectedRouteStopCard: View {
                     AppTag("\(durationMinutes) dk önerilir", iconName: "clock")
                 }
 
-                if relatedPlace != nil {
+                if let actionTitle {
                     Divider()
 
                     Button {
-                        openPlaceDetail?()
+                        openDetail?()
                     } label: {
                         HStack(spacing: AppSpacing.sm) {
-                            Image(systemName: "mappin.and.ellipse")
+                            Image(systemName: relatedPlace != nil ? "mappin.and.ellipse" : "calendar")
                                 .font(.caption)
 
-                            Text("Mekan detayını aç")
+                            Text(actionTitle)
                                 .font(AppTypography.captionMedium)
 
                             Spacer()
@@ -77,6 +79,11 @@ struct SelectedRouteStopCard: View {
 
                 if let relatedPlace {
                     Text(relatedPlace.district)
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .lineLimit(1)
+                } else if let relatedEvent {
+                    Text(relatedEvent.venueName)
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColors.textSecondary)
                         .lineLimit(1)

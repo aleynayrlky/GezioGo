@@ -168,15 +168,20 @@ struct RouteDetailView: View {
     private var selectedStopSummary: some View {
         if let selectedStop = viewModel.selectedStop {
             let relatedPlace = viewModel.place(for: selectedStop)
+            let relatedEvent = viewModel.event(for: selectedStop)
 
             SelectedRouteStopCard(
                 stop: selectedStop,
                 relatedPlace: relatedPlace,
+                relatedEvent: relatedEvent,
                 stopTypeTitle: viewModel.stopTypeText(selectedStop.type),
-                stopTypeIconName: viewModel.stopTypeIcon(selectedStop.type)
+                stopTypeIconName: viewModel.stopTypeIcon(selectedStop.type),
+                actionTitle: viewModel.actionTitle(for: selectedStop)
             ) {
                 if let relatedPlace {
                     navigate(.placeDetail(place: relatedPlace))
+                } else if let relatedEvent {
+                    navigate(.eventDetail(event: relatedEvent))
                 }
             }
         }
@@ -244,6 +249,8 @@ struct RouteDetailView: View {
 
     private func stopCard(_ stop: RouteStop) -> some View {
         let relatedPlace = viewModel.place(for: stop)
+        let relatedEvent = viewModel.event(for: stop)
+        let actionTitle = viewModel.actionTitle(for: stop)
 
         return AppCard {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -301,15 +308,19 @@ struct RouteDetailView: View {
                     Spacer()
                 }
 
-                if let relatedPlace {
+                if let actionTitle {
                     Button {
-                        navigate(.placeDetail(place: relatedPlace))
+                        if let relatedPlace {
+                            navigate(.placeDetail(place: relatedPlace))
+                        } else if let relatedEvent {
+                            navigate(.eventDetail(event: relatedEvent))
+                        }
                     } label: {
                         HStack {
-                            Image(systemName: "mappin.and.ellipse")
+                            Image(systemName: relatedPlace != nil ? "mappin.and.ellipse" : "calendar")
                                 .font(.caption)
 
-                            Text("Mekan detayını aç")
+                            Text(actionTitle)
                                 .font(AppTypography.captionMedium)
 
                             Spacer()

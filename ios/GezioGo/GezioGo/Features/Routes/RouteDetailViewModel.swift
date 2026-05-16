@@ -6,6 +6,7 @@ final class RouteDetailViewModel: ObservableObject {
     @Published var route: TripRoute
     @Published var selectedStop: RouteStop?
     @Published var places: [Place] = []
+    @Published var events: [Event] = []
     @Published var isLoadingPlaces = false
     @Published var placeLoadErrorMessage: String?
 
@@ -104,7 +105,11 @@ final class RouteDetailViewModel: ObservableObject {
         placeLoadErrorMessage = nil
 
         do {
-            places = try await dataService.fetchPlaces(cityId: route.cityId)
+            async let placesResult = dataService.fetchPlaces(cityId: route.cityId)
+            async let eventsResult = dataService.fetchEvents(cityId: route.cityId)
+
+            places = try await placesResult
+            events = try await eventsResult
 
             if selectedStop == nil {
                 selectedStop = sortedStops.first
@@ -115,13 +120,32 @@ final class RouteDetailViewModel: ObservableObject {
 
         isLoadingPlaces = false
     }
-
     func place(for stop: RouteStop) -> Place? {
         guard let placeId = stop.placeId else {
             return nil
         }
 
         return places.first { $0.id == placeId }
+    }
+    
+    func event(for stop: RouteStop) -> Event? {
+        guard let eventId = stop.eventId else {
+            return nil
+        }
+
+        return events.first { $0.id == eventId }
+    }
+
+    func actionTitle(for stop: RouteStop) -> String? {
+        if place(for: stop) != nil {
+            return "Mekan detayını aç"
+        }
+
+        if event(for: stop) != nil {
+            return "Etkinlik detayını aç"
+        }
+
+        return nil
     }
 
     func interestDisplayName(_ interest: String) -> String {
