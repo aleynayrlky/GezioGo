@@ -91,4 +91,9 @@ final class FavoritesViewModel: ObservableObject {
         favoritesService.clearFavorites()
         favoritePlaces = []
     }
+    
+    func removeSavedRoute(_ route: TripRoute) {
+        savedRoutesService.remove(routeId: route.id)
+        savedRoutes.removeAll { $0.id == route.id }
+    }
 }

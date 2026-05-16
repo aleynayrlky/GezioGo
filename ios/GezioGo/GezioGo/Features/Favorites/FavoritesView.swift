@@ -138,6 +138,20 @@ struct FavoritesView: View {
                         ) {
                             navigate(.routeDetail(route: route))
                         }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                viewModel.removeSavedRoute(route)
+                            } label: {
+                                Label("Kaydedilenlerden çıkar", systemImage: "bookmark.slash")
+                            }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                viewModel.removeSavedRoute(route)
+                            } label: {
+                                Label("Çıkar", systemImage: "bookmark.slash")
+                            }
+                        }
                     }
                 }
             }
