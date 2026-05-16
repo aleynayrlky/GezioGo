@@ -7,7 +7,9 @@ struct SelectedRouteStopCard: View {
     let stopTypeTitle: String
     let stopTypeIconName: String
     let actionTitle: String?
+    let canOpenDirections: Bool
     var openDetail: (() -> Void)? = nil
+    var openDirections: (() -> Void)? = nil
 
     var body: some View {
         AppCard {
@@ -25,27 +27,52 @@ struct SelectedRouteStopCard: View {
                     AppTag("\(durationMinutes) dk önerilir", iconName: "clock")
                 }
 
-                if let actionTitle {
+                if actionTitle != nil || canOpenDirections {
                     Divider()
 
-                    Button {
-                        openDetail?()
-                    } label: {
-                        HStack(spacing: AppSpacing.sm) {
-                            Image(systemName: relatedPlace != nil ? "mappin.and.ellipse" : "calendar")
-                                .font(.caption)
+                    VStack(spacing: AppSpacing.sm) {
+                        if let actionTitle {
+                            Button {
+                                openDetail?()
+                            } label: {
+                                HStack(spacing: AppSpacing.sm) {
+                                    Image(systemName: relatedPlace != nil ? "mappin.and.ellipse" : "calendar")
+                                        .font(.caption)
 
-                            Text(actionTitle)
-                                .font(AppTypography.captionMedium)
+                                    Text(actionTitle)
+                                        .font(AppTypography.captionMedium)
 
-                            Spacer()
+                                    Spacer()
 
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                }
+                                .foregroundStyle(AppColors.teal)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .foregroundStyle(AppColors.teal)
+
+                        if canOpenDirections {
+                            Button {
+                                openDirections?()
+                            } label: {
+                                HStack(spacing: AppSpacing.sm) {
+                                    Image(systemName: "location.fill")
+                                        .font(.caption)
+
+                                    Text("Yol tarifi al")
+                                        .font(AppTypography.captionMedium)
+
+                                    Spacer()
+
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.caption)
+                                }
+                                .foregroundStyle(AppColors.petrol)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }

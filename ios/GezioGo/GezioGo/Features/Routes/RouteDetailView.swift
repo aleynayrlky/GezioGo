@@ -263,13 +263,16 @@ struct RouteDetailView: View {
                 relatedEvent: relatedEvent,
                 stopTypeTitle: viewModel.stopTypeText(selectedStop.type),
                 stopTypeIconName: viewModel.stopTypeIcon(selectedStop.type),
-                actionTitle: viewModel.actionTitle(for: selectedStop)
+                actionTitle: viewModel.actionTitle(for: selectedStop),
+                canOpenDirections: viewModel.canOpenDirections(for: selectedStop)
             ) {
                 if let relatedPlace {
                     navigate(.placeDetail(place: relatedPlace))
                 } else if let relatedEvent {
                     navigate(.eventDetail(event: relatedEvent))
                 }
+            } openDirections: {
+                viewModel.openDirections(for: selectedStop)
             }
         }
     }
