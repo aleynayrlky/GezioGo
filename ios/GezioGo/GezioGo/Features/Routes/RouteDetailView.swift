@@ -122,6 +122,26 @@ struct RouteDetailView: View {
         if let firstStop = viewModel.firstNavigableStop {
             AppCard {
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                            Text("Rota aksiyonları")
+                                .font(AppTypography.subtitle)
+                                .foregroundStyle(AppColors.textPrimary)
+
+                            Text("Rotayı başlat, paylaş veya daha sonra tekrar incelemek için kaydet.")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                        }
+
+                        Spacer()
+
+                        if viewModel.isSaved {
+                            AppTag("Kaydedildi", iconName: "bookmark.fill")
+                        }
+                    }
+
+                    Divider()
+
                     HStack(alignment: .top, spacing: AppSpacing.md) {
                         ZStack {
                             RoundedRectangle(cornerRadius: AppRadius.medium)
@@ -480,14 +500,14 @@ struct RouteDetailView: View {
                     .font(AppTypography.subtitle)
                     .foregroundStyle(AppColors.textPrimary)
 
-                Text("Bu rota şimdilik mock veriyle hazırlanmıştır. İlerleyen aşamalarda AI destekli kişisel rota önerileri, konuma göre sıralama ve harita üzerinde rota görünümü eklenecek.")
+                Text("Bu rota şimdilik mock veriyle hazırlanmıştır. Rota duraklarını haritada inceleyebilir, uygun duraklara Apple Maps ile yol tarifi alabilir ve rotayı paylaşabilirsin.")
                     .font(AppTypography.body)
                     .foregroundStyle(AppColors.textSecondary)
                     .lineSpacing(4)
 
                 HStack(spacing: AppSpacing.xs) {
-                    AppTag("AI rota yakında", iconName: "wand.and.stars")
-                    AppTag("Harita desteği yakında", iconName: "map")
+                    AppTag("Apple Maps", iconName: "location.fill")
+                    AppTag("Paylaşılabilir rota", iconName: "square.and.arrow.up")
                 }
             }
         }
