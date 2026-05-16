@@ -100,6 +100,12 @@ struct MainTabBarView: View {
 
         case .eventDetail(let event):
             EventDetailView(event: event)
+
+        case .routes(let cityId):
+            RoutesView(cityId: cityId)
+
+        case .routeDetail(let route):
+            RouteDetailView(route: route)
         }
     }
 

@@ -6,4 +6,6 @@ enum AppRoute: Hashable {
     case placeDetail(place: Place)
     case events(cityId: String)
     case eventDetail(event: Event)
+    case routes(cityId: String)
+    case routeDetail(route: TripRoute)
 }

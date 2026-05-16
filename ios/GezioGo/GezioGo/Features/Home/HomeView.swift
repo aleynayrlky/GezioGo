@@ -50,6 +50,8 @@ struct HomeView: View {
                         placesSection
 
                         eventsSection
+                        
+                        routesSection
                     }
                 }
                 .padding(AppSpacing.lg)
@@ -165,6 +167,81 @@ struct HomeView: View {
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    private var routesSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    Text("Hazır rotalar")
+                        .font(AppTypography.subtitle)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Samsun’u planlı gezi rotalarıyla keşfet")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+
+                Spacer()
+
+                Button("Tümünü Gör") {
+                    navigate(.routes(cityId: cityId))
+                }
+                .font(AppTypography.captionMedium)
+                .foregroundStyle(AppColors.teal)
+            }
+
+            AppCard {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    HStack(alignment: .top, spacing: AppSpacing.md) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: AppRadius.medium)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            AppColors.petrol,
+                                            AppColors.teal
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 52, height: 52)
+
+                            Image(systemName: "map.fill")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundStyle(AppColors.gold)
+                        }
+
+                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                            Text("Şehri hazır planlarla gez")
+                                .font(AppTypography.bodyMedium)
+                                .foregroundStyle(AppColors.textPrimary)
+
+                            Text("Tarih, doğa ve sahil odaklı gezi rotalarını incele.")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .lineSpacing(3)
+
+                            HStack(spacing: AppSpacing.xs) {
+                                AppTag("Rotalar", iconName: "map")
+                                AppTag("AI rota yakında", iconName: "wand.and.stars")
+                            }
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .padding(.top, AppSpacing.xs)
+                    }
+                }
+            }
+            .onTapGesture {
+                navigate(.routes(cityId: cityId))
             }
         }
     }

@@ -3,6 +3,7 @@ import SwiftUI
 struct RoutesView: View {
     let cityId: String
 
+    @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: RoutesViewModel
 
     init(cityId: String) {
@@ -88,7 +89,9 @@ struct RoutesView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.featuredRoutes) { route in
-                    RouteCard(route: route)
+                    RouteCard(route: route) {
+                        navigate(.routeDetail(route: route))
+                    }
                 }
             }
         }
