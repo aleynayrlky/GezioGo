@@ -30,6 +30,7 @@ struct RouteDetailView: View {
                     notesSection
                 }
                 .padding(AppSpacing.lg)
+                .padding(.bottom, AppSpacing.xl)
             }
         }
         .navigationTitle(viewModel.route.title)
@@ -255,20 +256,14 @@ struct RouteDetailView: View {
         return AppCard {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 HStack(alignment: .top, spacing: AppSpacing.md) {
-                    VStack(spacing: AppSpacing.xs) {
-                        ZStack {
-                            Circle()
-                                .fill(viewModel.selectedStop?.id == stop.id ? AppColors.gold : AppColors.petrol)
-                                .frame(width: 34, height: 34)
+                    ZStack {
+                        Circle()
+                            .fill(viewModel.selectedStop?.id == stop.id ? AppColors.gold : AppColors.petrol)
+                            .frame(width: 38, height: 38)
 
-                            Text("\(stop.order)")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(.white)
-                        }
-
-                        Rectangle()
-                            .fill(AppColors.textSecondary.opacity(0.18))
-                            .frame(width: 2, height: 32)
+                        Text("\(stop.order)")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(.white)
                     }
 
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -282,7 +277,11 @@ struct RouteDetailView: View {
                                 AppTag(timeLabel, iconName: "clock")
                             }
 
-                            if relatedPlace != nil {
+                            if viewModel.selectedStop?.id == stop.id {
+                                AppTag("Seçili", iconName: "checkmark")
+                            }
+
+                            if actionTitle != nil {
                                 AppTag("Detay var", iconName: "chevron.right")
                             }
                         }
