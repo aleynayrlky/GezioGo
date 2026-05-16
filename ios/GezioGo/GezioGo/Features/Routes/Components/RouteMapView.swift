@@ -96,7 +96,7 @@ struct RouteMapView: View {
                         .font(AppTypography.bodyMedium)
                         .foregroundStyle(AppColors.textPrimary)
 
-                    Text("Bu rota durakları için koordinat bilgisi henüz eklenmemiş.")
+                    Text("Bu rotadaki duraklar için henüz koordinat bilgisi eklenmemiş.")
                         .font(AppTypography.caption)
                         .foregroundStyle(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
@@ -108,44 +108,35 @@ struct RouteMapView: View {
     }
 
     private func routePin(for stop: RouteStop) -> some View {
-        let selected = isSelected(stop)
+        let isSelected = selectedStop?.id == stop.id
 
-        return VStack(spacing: 4) {
+        return VStack(spacing: AppSpacing.xs) {
             ZStack {
                 Circle()
-                    .fill(selected ? AppColors.gold : AppColors.petrol)
-                    .frame(
-                        width: selected ? 44 : 36,
-                        height: selected ? 44 : 36
-                    )
+                    .fill(isSelected ? AppColors.gold : AppColors.petrol)
+                    .frame(width: isSelected ? 42 : 34, height: isSelected ? 42 : 34)
                     .shadow(
-                        color: Color.black.opacity(selected ? 0.24 : 0.12),
-                        radius: selected ? 8 : 4,
+                        color: .black.opacity(isSelected ? 0.18 : 0.10),
+                        radius: isSelected ? 8 : 4,
                         x: 0,
-                        y: selected ? 5 : 2
+                        y: 3
                     )
 
-                VStack(spacing: 0) {
-                    Text("\(stop.order)")
-                        .font(.system(size: selected ? 15 : 13, weight: .bold))
-                        .foregroundStyle(.white)
-
-                    Image(systemName: stopIconName(for: stop.type))
-                        .font(.system(size: selected ? 9 : 8, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.9))
-                }
+                Text("\(stop.order)")
+                    .font(.system(size: isSelected ? 16 : 13, weight: .bold))
+                    .foregroundStyle(.white)
             }
 
-            if selected {
+            if isSelected {
                 Text(stop.title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(AppTypography.captionMedium)
                     .foregroundStyle(AppColors.textPrimary)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(AppColors.cardBackground.opacity(0.94))
-                    .clipShape(Capsule())
                     .lineLimit(1)
-                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+                    .padding(.horizontal, AppSpacing.sm)
+                    .padding(.vertical, AppSpacing.xs)
+                    .background(AppColors.cream)
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
             }
         }
     }
