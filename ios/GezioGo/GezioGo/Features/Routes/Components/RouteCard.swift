@@ -49,16 +49,10 @@ struct RouteCard: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: AppSpacing.sm) {
-                Image(systemName: isSaved ? "bookmark.fill" : "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(isSaved ? AppColors.gold : AppColors.textSecondary)
-
-                if isSaved {
-                    AppTag("Kaydedildi", iconName: "bookmark.fill")
-                }
-            }
-            .padding(.top, AppSpacing.xs)
+            Image(systemName: isSaved ? "bookmark.fill" : "chevron.right")
+                .font(.caption)
+                .foregroundStyle(isSaved ? AppColors.gold : AppColors.textSecondary)
+                .padding(.top, AppSpacing.xs)
         }
     }
 

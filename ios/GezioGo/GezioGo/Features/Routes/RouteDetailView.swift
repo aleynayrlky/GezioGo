@@ -52,6 +52,9 @@ struct RouteDetailView: View {
             viewModel.refreshSavedState()
             await viewModel.loadPlaces()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .savedRoutesDidChange)) { _ in
+            viewModel.refreshSavedState()
+        }
     }
 
     private var heroSection: some View {

@@ -35,6 +35,9 @@ struct RoutesView: View {
         .onAppear {
             viewModel.refreshSavedRoutes()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .savedRoutesDidChange)) { _ in
+            viewModel.refreshSavedRoutes()
+        }
     }
 
     private var headerView: some View {

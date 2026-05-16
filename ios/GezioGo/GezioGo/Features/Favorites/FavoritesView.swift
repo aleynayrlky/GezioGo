@@ -60,7 +60,7 @@ struct FavoritesView: View {
                         Image(systemName: "trash")
                             .foregroundStyle(AppColors.error)
                     }
-                    .accessibilityLabel("Tüm favorileri temizle")
+                    .accessibilityLabel("Tüm favori mekanları temizle")
                 }
             }
         }
@@ -95,7 +95,14 @@ struct FavoritesView: View {
             }
 
         } else if viewModel.favoritePlaces.isEmpty {
-            emptyFavoritesView
+            EmptyStateView(
+                title: "Favori mekan yok",
+                message: "Keşfet ekranından beğendiğin mekanları favorilerine ekleyebilirsin.",
+                iconName: "heart",
+                buttonTitle: "Keşfetmeye Git"
+            ) {
+                navigate(.explore(cityId: cityId))
+            }
 
         } else {
             favoritesList
@@ -143,13 +150,6 @@ struct FavoritesView: View {
                                 viewModel.removeSavedRoute(route)
                             } label: {
                                 Label("Kaydedilenlerden çıkar", systemImage: "bookmark.slash")
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                viewModel.removeSavedRoute(route)
-                            } label: {
-                                Label("Çıkar", systemImage: "bookmark.slash")
                             }
                         }
                     }
