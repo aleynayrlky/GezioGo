@@ -185,18 +185,19 @@ struct RouteCard: View {
                 if isSaved {
                     AppTag("Kaydedildi", iconName: "bookmark.fill")
                 }
+
                 AppTag(durationTypeText, iconName: "calendar")
 
                 if let transportType = route.transportType {
                     AppTag(transportType.displayName, iconName: transportIconName)
                 }
 
-                if let budget = route.estimatedCostLevel ?? route.budget {
-                    AppTag(budget.displayName, iconName: "creditcard")
+                if let tempo = route.tempo {
+                    AppTag(tempo.displayName, iconName: tempoIconName)
                 }
 
-                ForEach(route.interests.prefix(3), id: \.self) { interest in
-                    AppTag(interest)
+                if let budget = route.estimatedCostLevel ?? route.budget {
+                    AppTag(budget.displayName, iconName: "creditcard")
                 }
             }
         }
@@ -260,7 +261,11 @@ struct RouteCard: View {
     }
 
     private var transportIconName: String {
-        switch route.transportType {
+        guard let transportType = route.transportType else {
+            return "figure.walk"
+        }
+
+        switch transportType {
         case .walking:
             return "figure.walk"
         case .publicTransport:
@@ -269,8 +274,21 @@ struct RouteCard: View {
             return "car"
         case .mixed:
             return "arrow.triangle.swap"
-        case .none:
-            return "map"
+        }
+    }
+    
+    private var tempoIconName: String {
+        guard let tempo = route.tempo else {
+            return "speedometer"
+        }
+
+        switch tempo {
+        case .slow:
+            return "tortoise"
+        case .balanced:
+            return "speedometer"
+        case .intense:
+            return "hare"
         }
     }
 }
