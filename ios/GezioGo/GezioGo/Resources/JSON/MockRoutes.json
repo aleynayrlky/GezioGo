@@ -46,5 +46,53 @@
     "isSaved": true,
     "createdAt": "2026-05-15T00:00:00+03:00",
     "updatedAt": "2026-05-15T00:00:00+03:00"
+  },
+  {
+    "id": "route_samsun_002",
+    "userId": "user_001",
+    "cityId": "samsun",
+    "title": "Samsun Aile ve Doğa Rotası",
+    "date": "2026-06-02",
+    "durationType": "half_day",
+    "budget": "low",
+    "interests": ["nature", "family", "culture"],
+    "transportType": "mixed",
+    "companions": "family",
+    "tempo": "slow",
+    "stops": [
+      {
+        "id": "route_samsun_002_stop_001",
+        "order": 1,
+        "type": "place",
+        "placeId": "amazon-koyu",
+        "eventId": null,
+        "title": "Amazon Köyü",
+        "timeLabel": "10:00 - 10:45",
+        "durationMinutes": 45,
+        "note": "Aileyle gezmek için keyifli, tematik ve açık hava odaklı bir durak.",
+        "latitude": 41.30,
+        "longitude": 36.32
+      },
+      {
+        "id": "route_samsun_002_stop_002",
+        "order": 2,
+        "type": "place",
+        "placeId": "atakum-sahili",
+        "eventId": null,
+        "title": "Atakum Sahili",
+        "timeLabel": "11:30 - 13:00",
+        "durationMinutes": 90,
+        "note": "Sahil yürüyüşü, çocuklarla açık hava molası ve hafif yeme içme için uygun.",
+        "latitude": 41.34,
+        "longitude": 36.25
+      }
+    ],
+    "totalDurationMinutes": 210,
+    "totalDistanceKm": 8.6,
+    "estimatedCostLevel": "low",
+    "aiPromptVersion": "v1",
+    "isSaved": false,
+    "createdAt": "2026-05-16T00:00:00+03:00",
+    "updatedAt": "2026-05-16T00:00:00+03:00"
   }
 ]
