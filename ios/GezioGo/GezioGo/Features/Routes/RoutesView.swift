@@ -29,6 +29,10 @@ struct RoutesView: View {
                     durationFilterSection
 
                     transportFilterSection
+                    
+                    tempoFilterSection
+
+                    savedOnlyFilterSection
 
                     contentSection
                 }
@@ -204,6 +208,75 @@ struct RoutesView: View {
         }
     }
     
+    private var tempoFilterSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Tempo")
+                .font(AppTypography.subtitle)
+                .foregroundStyle(AppColors.textPrimary)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    Button {
+                        withAnimation {
+                            viewModel.selectTempo(nil)
+                        }
+                    } label: {
+                        filterChip(
+                            title: "Tümü",
+                            iconName: "square.grid.2x2",
+                            isSelected: viewModel.selectedTempo == nil
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    ForEach(viewModel.tempoOptions, id: \.self) { tempo in
+                        Button {
+                            withAnimation {
+                                viewModel.selectTempo(tempo)
+                            }
+                        } label: {
+                            filterChip(
+                                title: tempo.displayName,
+                                iconName: tempoIconName(tempo),
+                                isSelected: viewModel.selectedTempo == tempo
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var savedOnlyFilterSection: some View {
+        Button {
+            withAnimation {
+                viewModel.toggleSavedOnly()
+            }
+        } label: {
+            HStack(spacing: AppSpacing.sm) {
+                Image(systemName: viewModel.showSavedOnly ? "bookmark.fill" : "bookmark")
+                    .font(.caption)
+
+                Text("Sadece kaydedilen rotalar")
+                    .font(AppTypography.captionMedium)
+
+                Spacer()
+
+                if viewModel.showSavedOnly {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                }
+            }
+            .foregroundStyle(viewModel.showSavedOnly ? .white : AppColors.petrol)
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
+            .background(viewModel.showSavedOnly ? AppColors.petrol : AppColors.cream)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.large))
+        }
+        .buttonStyle(.plain)
+    }
+    
     private func filterChip(
         title: String,
         iconName: String,
@@ -252,6 +325,17 @@ struct RoutesView: View {
             return "car"
         case .mixed:
             return "arrow.triangle.swap"
+        }
+    }
+    
+    private func tempoIconName(_ tempo: TravelTempo) -> String {
+        switch tempo {
+        case .slow:
+            return "tortoise"
+        case .balanced:
+            return "speedometer"
+        case .intense:
+            return "hare"
         }
     }
 

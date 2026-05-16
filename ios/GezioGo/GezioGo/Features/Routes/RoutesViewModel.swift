@@ -9,6 +9,8 @@ final class RoutesViewModel: ObservableObject {
     @Published var selectedInterest: String?
     @Published var selectedDurationType: RouteDurationType?
     @Published var selectedTransportType: TransportType?
+    @Published var selectedTempo: TravelTempo?
+    @Published var showSavedOnly = false
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -52,6 +54,18 @@ final class RoutesViewModel: ObservableObject {
             }
         }
 
+        if let selectedTempo {
+            result = result.filter { route in
+                route.tempo == selectedTempo
+            }
+        }
+
+        if showSavedOnly {
+            result = result.filter { route in
+                savedRouteIds.contains(route.id)
+            }
+        }
+
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !query.isEmpty else {
@@ -75,10 +89,16 @@ final class RoutesViewModel: ObservableObject {
         [.walking, .publicTransport, .car, .mixed]
     }
 
+    var tempoOptions: [TravelTempo] {
+        [.slow, .balanced, .intense]
+    }
+
     var hasActiveFilters: Bool {
         selectedInterest != nil ||
         selectedDurationType != nil ||
         selectedTransportType != nil ||
+        selectedTempo != nil ||
+        showSavedOnly ||
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
@@ -101,6 +121,10 @@ final class RoutesViewModel: ObservableObject {
             return "Arama sonuçları"
         }
 
+        if showSavedOnly {
+            return "Kaydedilen rotalar"
+        }
+
         if let selectedInterest {
             return interestDisplayName(selectedInterest)
         }
@@ -111,6 +135,10 @@ final class RoutesViewModel: ObservableObject {
 
         if let selectedTransportType {
             return selectedTransportType.displayName
+        }
+
+        if let selectedTempo {
+            return selectedTempo.displayName
         }
 
         return "Önerilen rotalar"
@@ -144,6 +172,8 @@ final class RoutesViewModel: ObservableObject {
         selectedInterest = nil
         selectedDurationType = nil
         selectedTransportType = nil
+        selectedTempo = nil
+        showSavedOnly = false
     }
 
     func selectInterest(_ interest: String?) {
@@ -168,6 +198,18 @@ final class RoutesViewModel: ObservableObject {
         } else {
             selectedTransportType = transportType
         }
+    }
+
+    func selectTempo(_ tempo: TravelTempo?) {
+        if selectedTempo == tempo {
+            selectedTempo = nil
+        } else {
+            selectedTempo = tempo
+        }
+    }
+
+    func toggleSavedOnly() {
+        showSavedOnly.toggle()
     }
 
     func interestDisplayName(_ interest: String) -> String {
