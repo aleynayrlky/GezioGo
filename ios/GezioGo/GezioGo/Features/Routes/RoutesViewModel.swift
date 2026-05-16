@@ -6,6 +6,7 @@ final class RoutesViewModel: ObservableObject {
     @Published var routes: [TripRoute] = []
     @Published var savedRouteIds: [String] = []
     @Published var searchText: String = ""
+    @Published var selectedInterest: String?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -29,18 +30,31 @@ final class RoutesViewModel: ObservableObject {
     }
 
     var filteredRoutes: [TripRoute] {
+        var result = routes
+
+        if let selectedInterest {
+            result = result.filter { route in
+                route.interests.contains(selectedInterest)
+            }
+        }
+
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !query.isEmpty else {
-            return routes
+            return result
         }
 
-        return routes.filter { route in
+        return result.filter { route in
             routeMatchesSearch(route, query: query)
         }
     }
 
+    var interestOptions: [String] {
+        ["history", "nature", "museum", "food_drink", "family", "culture"]
+    }
+
     var hasActiveFilters: Bool {
+        selectedInterest != nil ||
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
@@ -50,14 +64,24 @@ final class RoutesViewModel: ObservableObject {
 
     var emptyStateMessage: String {
         if hasActiveFilters {
-            return "Aramana uygun rota bulunamadı. Farklı bir kelime deneyebilirsin."
+            return "Aramana veya seçtiğin ilgi alanına uygun rota bulunamadı. Farklı bir kelime ya da filtre deneyebilirsin."
         } else {
             return "Bu şehir için henüz rota eklenmemiş. Daha sonra tekrar kontrol edebilirsin."
         }
     }
 
     var resultsTitle: String {
-        hasActiveFilters ? "Arama sonuçları" : "Önerilen rotalar"
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !query.isEmpty, let selectedInterest {
+            return "\(interestDisplayName(selectedInterest)) içinde arama"
+        } else if !query.isEmpty {
+            return "Arama sonuçları"
+        } else if let selectedInterest {
+            return interestDisplayName(selectedInterest)
+        } else {
+            return "Önerilen rotalar"
+        }
     }
 
     func loadRoutes() async {
@@ -85,6 +109,34 @@ final class RoutesViewModel: ObservableObject {
 
     func clearFilters() {
         searchText = ""
+        selectedInterest = nil
+    }
+
+    func selectInterest(_ interest: String?) {
+        if selectedInterest == interest {
+            selectedInterest = nil
+        } else {
+            selectedInterest = interest
+        }
+    }
+
+    func interestDisplayName(_ interest: String) -> String {
+        switch interest {
+        case "history":
+            return "Tarih"
+        case "nature":
+            return "Doğa"
+        case "food_drink":
+            return "Yeme İçme"
+        case "museum":
+            return "Müze"
+        case "family":
+            return "Aile"
+        case "culture":
+            return "Kültür"
+        default:
+            return interest
+        }
     }
 
     private func routeMatchesSearch(_ route: TripRoute, query: String) -> Bool {
@@ -118,25 +170,6 @@ final class RoutesViewModel: ObservableObject {
         .localizedLowercase
 
         return searchableText.contains(normalizedQuery)
-    }
-
-    private func interestDisplayName(_ interest: String) -> String {
-        switch interest {
-        case "history":
-            return "Tarih"
-        case "nature":
-            return "Doğa"
-        case "food_drink":
-            return "Yeme İçme"
-        case "museum":
-            return "Müze"
-        case "family":
-            return "Aile"
-        case "culture":
-            return "Kültür"
-        default:
-            return interest
-        }
     }
 
     private func durationTypeText(_ durationType: RouteDurationType) -> String {

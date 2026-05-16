@@ -23,6 +23,8 @@ struct RoutesView: View {
                     headerView
                     
                     searchSection
+                    
+                    interestFilterSection
 
                     contentSection
                 }
@@ -62,6 +64,98 @@ struct RoutesView: View {
             text: $viewModel.searchText,
             placeholder: "Rota, durak veya ilgi alanı ara"
         )
+    }
+    
+    private var interestFilterSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                Text("İlgi alanı")
+                    .font(AppTypography.subtitle)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Spacer()
+
+                if viewModel.hasActiveFilters {
+                    Button("Temizle") {
+                        withAnimation {
+                            viewModel.clearFilters()
+                        }
+                    }
+                    .font(AppTypography.captionMedium)
+                    .foregroundStyle(AppColors.teal)
+                }
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    Button {
+                        withAnimation {
+                            viewModel.selectInterest(nil)
+                        }
+                    } label: {
+                        filterChip(
+                            title: "Tümü",
+                            iconName: "square.grid.2x2",
+                            isSelected: viewModel.selectedInterest == nil
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    ForEach(viewModel.interestOptions, id: \.self) { interest in
+                        Button {
+                            withAnimation {
+                                viewModel.selectInterest(interest)
+                            }
+                        } label: {
+                            filterChip(
+                                title: viewModel.interestDisplayName(interest),
+                                iconName: interestIconName(interest),
+                                isSelected: viewModel.selectedInterest == interest
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func filterChip(
+        title: String,
+        iconName: String,
+        isSelected: Bool
+    ) -> some View {
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: iconName)
+                .font(.caption)
+
+            Text(title)
+                .font(AppTypography.captionMedium)
+        }
+        .foregroundStyle(isSelected ? .white : AppColors.petrol)
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.vertical, AppSpacing.sm)
+        .background(isSelected ? AppColors.petrol : AppColors.cream)
+        .clipShape(Capsule())
+    }
+    
+    private func interestIconName(_ interest: String) -> String {
+        switch interest {
+        case "history":
+            return "building.columns"
+        case "nature":
+            return "leaf"
+        case "museum":
+            return "building.2"
+        case "food_drink":
+            return "fork.knife"
+        case "family":
+            return "figure.and.child.holdinghands"
+        case "culture":
+            return "theatermasks"
+        default:
+            return "sparkles"
+        }
     }
 
     @ViewBuilder
