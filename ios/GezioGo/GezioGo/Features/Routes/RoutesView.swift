@@ -25,6 +25,10 @@ struct RoutesView: View {
                     searchSection
                     
                     interestFilterSection
+                    
+                    durationFilterSection
+
+                    transportFilterSection
 
                     contentSection
                 }
@@ -120,6 +124,86 @@ struct RoutesView: View {
         }
     }
     
+    private var durationFilterSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Süre")
+                .font(AppTypography.subtitle)
+                .foregroundStyle(AppColors.textPrimary)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    Button {
+                        withAnimation {
+                            viewModel.selectDurationType(nil)
+                        }
+                    } label: {
+                        filterChip(
+                            title: "Tümü",
+                            iconName: "square.grid.2x2",
+                            isSelected: viewModel.selectedDurationType == nil
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    ForEach(viewModel.durationOptions, id: \.self) { durationType in
+                        Button {
+                            withAnimation {
+                                viewModel.selectDurationType(durationType)
+                            }
+                        } label: {
+                            filterChip(
+                                title: viewModel.durationTypeText(durationType),
+                                iconName: "clock",
+                                isSelected: viewModel.selectedDurationType == durationType
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var transportFilterSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            Text("Ulaşım")
+                .font(AppTypography.subtitle)
+                .foregroundStyle(AppColors.textPrimary)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    Button {
+                        withAnimation {
+                            viewModel.selectTransportType(nil)
+                        }
+                    } label: {
+                        filterChip(
+                            title: "Tümü",
+                            iconName: "square.grid.2x2",
+                            isSelected: viewModel.selectedTransportType == nil
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    ForEach(viewModel.transportOptions, id: \.self) { transportType in
+                        Button {
+                            withAnimation {
+                                viewModel.selectTransportType(transportType)
+                            }
+                        } label: {
+                            filterChip(
+                                title: transportType.displayName,
+                                iconName: transportIconName(transportType),
+                                isSelected: viewModel.selectedTransportType == transportType
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+    
     private func filterChip(
         title: String,
         iconName: String,
@@ -155,6 +239,19 @@ struct RoutesView: View {
             return "theatermasks"
         default:
             return "sparkles"
+        }
+    }
+    
+    private func transportIconName(_ transportType: TransportType) -> String {
+        switch transportType {
+        case .walking:
+            return "figure.walk"
+        case .publicTransport:
+            return "tram"
+        case .car:
+            return "car"
+        case .mixed:
+            return "arrow.triangle.swap"
         }
     }
 

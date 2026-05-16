@@ -7,6 +7,8 @@ final class RoutesViewModel: ObservableObject {
     @Published var savedRouteIds: [String] = []
     @Published var searchText: String = ""
     @Published var selectedInterest: String?
+    @Published var selectedDurationType: RouteDurationType?
+    @Published var selectedTransportType: TransportType?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -38,6 +40,18 @@ final class RoutesViewModel: ObservableObject {
             }
         }
 
+        if let selectedDurationType {
+            result = result.filter { route in
+                route.durationType == selectedDurationType
+            }
+        }
+
+        if let selectedTransportType {
+            result = result.filter { route in
+                route.transportType == selectedTransportType
+            }
+        }
+
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !query.isEmpty else {
@@ -53,8 +67,18 @@ final class RoutesViewModel: ObservableObject {
         ["history", "nature", "museum", "food_drink", "family", "culture"]
     }
 
+    var durationOptions: [RouteDurationType] {
+        [.halfDay, .oneDay, .twoDays, .custom]
+    }
+
+    var transportOptions: [TransportType] {
+        [.walking, .publicTransport, .car, .mixed]
+    }
+
     var hasActiveFilters: Bool {
         selectedInterest != nil ||
+        selectedDurationType != nil ||
+        selectedTransportType != nil ||
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
@@ -64,7 +88,7 @@ final class RoutesViewModel: ObservableObject {
 
     var emptyStateMessage: String {
         if hasActiveFilters {
-            return "Aramana veya seçtiğin ilgi alanına uygun rota bulunamadı. Farklı bir kelime ya da filtre deneyebilirsin."
+            return "Aramana veya seçtiğin filtrelere uygun rota bulunamadı. Farklı bir kelime ya da filtre deneyebilirsin."
         } else {
             return "Bu şehir için henüz rota eklenmemiş. Daha sonra tekrar kontrol edebilirsin."
         }
@@ -73,15 +97,23 @@ final class RoutesViewModel: ObservableObject {
     var resultsTitle: String {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if !query.isEmpty, let selectedInterest {
-            return "\(interestDisplayName(selectedInterest)) içinde arama"
-        } else if !query.isEmpty {
+        if !query.isEmpty {
             return "Arama sonuçları"
-        } else if let selectedInterest {
-            return interestDisplayName(selectedInterest)
-        } else {
-            return "Önerilen rotalar"
         }
+
+        if let selectedInterest {
+            return interestDisplayName(selectedInterest)
+        }
+
+        if let selectedDurationType {
+            return durationTypeText(selectedDurationType)
+        }
+
+        if let selectedTransportType {
+            return selectedTransportType.displayName
+        }
+
+        return "Önerilen rotalar"
     }
 
     func loadRoutes() async {
@@ -110,6 +142,8 @@ final class RoutesViewModel: ObservableObject {
     func clearFilters() {
         searchText = ""
         selectedInterest = nil
+        selectedDurationType = nil
+        selectedTransportType = nil
     }
 
     func selectInterest(_ interest: String?) {
@@ -117,6 +151,22 @@ final class RoutesViewModel: ObservableObject {
             selectedInterest = nil
         } else {
             selectedInterest = interest
+        }
+    }
+
+    func selectDurationType(_ durationType: RouteDurationType?) {
+        if selectedDurationType == durationType {
+            selectedDurationType = nil
+        } else {
+            selectedDurationType = durationType
+        }
+    }
+
+    func selectTransportType(_ transportType: TransportType?) {
+        if selectedTransportType == transportType {
+            selectedTransportType = nil
+        } else {
+            selectedTransportType = transportType
         }
     }
 
@@ -136,6 +186,19 @@ final class RoutesViewModel: ObservableObject {
             return "Kültür"
         default:
             return interest
+        }
+    }
+
+    func durationTypeText(_ durationType: RouteDurationType) -> String {
+        switch durationType {
+        case .halfDay:
+            return "Yarım Gün"
+        case .oneDay:
+            return "1 Gün"
+        case .twoDays:
+            return "2 Gün"
+        case .custom:
+            return "Özel"
         }
     }
 
@@ -170,18 +233,5 @@ final class RoutesViewModel: ObservableObject {
         .localizedLowercase
 
         return searchableText.contains(normalizedQuery)
-    }
-
-    private func durationTypeText(_ durationType: RouteDurationType) -> String {
-        switch durationType {
-        case .halfDay:
-            return "Yarım Gün"
-        case .oneDay:
-            return "1 Gün"
-        case .twoDays:
-            return "2 Gün"
-        case .custom:
-            return "Özel"
-        }
     }
 }
