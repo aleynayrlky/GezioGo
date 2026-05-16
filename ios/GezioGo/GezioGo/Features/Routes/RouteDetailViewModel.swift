@@ -109,66 +109,11 @@ final class RouteDetailViewModel: ObservableObject {
     }
     
     var shareTitle: String {
-        "GezioGo Rotası: \(route.title)"
+        RouteShareTextBuilder.shareTitle(for: route)
     }
 
     var shareText: String {
-        [
-            shareTitle,
-            "",
-            shareSummaryText,
-            "",
-            shareStopsText,
-            "",
-            "Bu rota GezioGo ile hazırlandı. Şehri planlı ve keyifli şekilde keşfet."
-        ]
-        .filter { !$0.isEmpty }
-        .joined(separator: "\n")
-    }
-
-    var shareSummaryText: String {
-        var lines: [String] = []
-
-        lines.append("Şehir: \(route.cityId.capitalized)")
-        lines.append("Süre: \(durationText)")
-        lines.append("Rota tipi: \(durationTypeText)")
-
-        if let transportType = route.transportType {
-            lines.append("Ulaşım: \(transportType.displayName)")
-        }
-
-        if let tempo = route.tempo {
-            lines.append("Tempo: \(tempo.displayName)")
-        }
-
-        if budgetText != "Bütçe bilgisi yok" {
-            lines.append("Tahmini bütçe: \(budgetText)")
-        }
-
-        if !interestsText.isEmpty {
-            lines.append("İlgi alanları: \(interestsText)")
-        }
-
-        return lines.joined(separator: "\n")
-    }
-
-    var shareStopsText: String {
-        guard !sortedStops.isEmpty else {
-            return "Durak bilgisi henüz eklenmemiş."
-        }
-
-        let stopLines = sortedStops.map { stop in
-            if let timeLabel = stop.timeLabel {
-                return "\(stop.order). \(stop.title) - \(timeLabel)"
-            } else {
-                return "\(stop.order). \(stop.title)"
-            }
-        }
-
-        return """
-        Duraklar:
-        \(stopLines.joined(separator: "\n"))
-        """
+        RouteShareTextBuilder.shareText(for: route)
     }
 
     var firstNavigableStop: RouteStop? {
