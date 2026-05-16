@@ -21,6 +21,8 @@ struct RoutesView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     headerView
+                    
+                    searchSection
 
                     contentSection
                 }
@@ -54,6 +56,13 @@ struct RoutesView: View {
                 .lineSpacing(4)
         }
     }
+    
+    private var searchSection: some View {
+        SearchBarView(
+            text: $viewModel.searchText,
+            placeholder: "Rota, durak veya ilgi alanı ara"
+        )
+    }
 
     @ViewBuilder
     private var contentSection: some View {
@@ -69,10 +78,15 @@ struct RoutesView: View {
 
         } else if viewModel.featuredRoutes.isEmpty {
             EmptyStateView(
-                title: "Rota bulunamadı",
-                message: "Bu şehir için henüz rota eklenmemiş. Daha sonra tekrar kontrol edebilirsin.",
-                iconName: "map"
-            )
+                title: viewModel.emptyStateTitle,
+                message: viewModel.emptyStateMessage,
+                iconName: "map",
+                buttonTitle: viewModel.hasActiveFilters ? "Filtreleri Temizle" : nil
+            ) {
+                withAnimation {
+                    viewModel.clearFilters()
+                }
+            }
 
         } else {
             routesList
@@ -82,7 +96,7 @@ struct RoutesView: View {
     private var routesList: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text("Önerilen rotalar")
+                Text(viewModel.resultsTitle)
                     .font(AppTypography.subtitle)
                     .foregroundStyle(AppColors.textPrimary)
 
