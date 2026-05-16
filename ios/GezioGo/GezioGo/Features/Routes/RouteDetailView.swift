@@ -130,63 +130,15 @@ struct RouteDetailView: View {
     }
 
     private var summarySection: some View {
-        AppCard {
-            VStack(spacing: AppSpacing.md) {
-                PlaceInfoRow(
-                    iconName: "clock",
-                    title: "Toplam Süre",
-                    value: viewModel.durationText
-                )
-
-                Divider()
-
-                PlaceInfoRow(
-                    iconName: "mappin.and.ellipse",
-                    title: "Durak Sayısı",
-                    value: "\(viewModel.sortedStops.count) durak"
-                )
-
-                Divider()
-
-                PlaceInfoRow(
-                    iconName: "point.topleft.down.curvedto.point.bottomright.up",
-                    title: "Mesafe",
-                    value: viewModel.distanceText
-                )
-
-                Divider()
-
-                PlaceInfoRow(
-                    iconName: "figure.walk",
-                    title: "Ulaşım",
-                    value: viewModel.transportText
-                )
-
-                Divider()
-
-                PlaceInfoRow(
-                    iconName: "speedometer",
-                    title: "Tempo",
-                    value: viewModel.tempoText
-                )
-
-                Divider()
-
-                PlaceInfoRow(
-                    iconName: "creditcard",
-                    title: "Tahmini Bütçe",
-                    value: viewModel.budgetText
-                )
-
-                Divider()
-
-                PlaceInfoRow(
-                    iconName: "person.2",
-                    title: "Kimler İçin",
-                    value: viewModel.companionText
-                )
-            }
-        }
+        RouteSummaryCard(
+            durationText: viewModel.durationText,
+            stopCountText: "\(viewModel.sortedStops.count) durak",
+            distanceText: viewModel.distanceText,
+            transportText: viewModel.transportText,
+            tempoText: viewModel.tempoText,
+            budgetText: viewModel.budgetText,
+            companionText: viewModel.companionText
+        )
     }
 
     private var mapSection: some View {
