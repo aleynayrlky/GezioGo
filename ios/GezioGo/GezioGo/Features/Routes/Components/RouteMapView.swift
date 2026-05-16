@@ -15,24 +15,6 @@ struct RouteMapView: View {
             }
     }
 
-    private var routeCoordinates: [CLLocationCoordinate2D] {
-        coordinateStops.compactMap { stop in
-            guard let latitude = stop.latitude,
-                  let longitude = stop.longitude else {
-                return nil
-            }
-
-            return CLLocationCoordinate2D(
-                latitude: latitude,
-                longitude: longitude
-            )
-        }
-    }
-
-    private var hasRouteLine: Bool {
-        routeCoordinates.count >= 2
-    }
-
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
             latitude: 41.2867,

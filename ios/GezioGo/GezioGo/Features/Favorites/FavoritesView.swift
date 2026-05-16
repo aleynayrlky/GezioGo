@@ -53,7 +53,7 @@ struct FavoritesView: View {
         }
         .toolbar {
             if !viewModel.favoritePlaces.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         viewModel.clearAllFavorites()
                     } label: {

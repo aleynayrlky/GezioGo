@@ -38,7 +38,7 @@ struct RouteDetailView: View {
         .navigationTitle(viewModel.route.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
                 ShareLink(
                     item: viewModel.shareText,
                     subject: Text(viewModel.shareTitle),
