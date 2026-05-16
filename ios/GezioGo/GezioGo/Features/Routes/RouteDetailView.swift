@@ -35,7 +35,21 @@ struct RouteDetailView: View {
         }
         .navigationTitle(viewModel.route.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    withAnimation {
+                        viewModel.toggleSaved()
+                    }
+                } label: {
+                    Image(systemName: viewModel.isSaved ? "bookmark.fill" : "bookmark")
+                        .foregroundStyle(viewModel.isSaved ? AppColors.gold : AppColors.petrol)
+                }
+                .accessibilityLabel(viewModel.isSaved ? "Rotayı kayıttan çıkar" : "Rotayı kaydet")
+            }
+        }
         .task {
+            viewModel.refreshSavedState()
             await viewModel.loadPlaces()
         }
     }
@@ -68,7 +82,13 @@ struct RouteDetailView: View {
             }
 
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                AppTag("Rota", iconName: "map")
+                HStack(spacing: AppSpacing.xs) {
+                    AppTag("Rota", iconName: "map")
+
+                    if viewModel.isSaved {
+                        AppTag("Kaydedildi", iconName: "bookmark.fill")
+                    }
+                }
 
                 Text(viewModel.route.title)
                     .font(AppTypography.title)

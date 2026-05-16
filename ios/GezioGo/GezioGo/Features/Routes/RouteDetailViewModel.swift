@@ -7,17 +7,22 @@ final class RouteDetailViewModel: ObservableObject {
     @Published var selectedStop: RouteStop?
     @Published var places: [Place] = []
     @Published var events: [Event] = []
+    @Published var isSaved = false
     @Published var isLoadingPlaces = false
     @Published var placeLoadErrorMessage: String?
 
     private let dataService: DataServiceProtocol
+    private let savedRoutesService: SavedRoutesService
 
     init(
         route: TripRoute,
-        dataService: DataServiceProtocol? = nil
+        dataService: DataServiceProtocol? = nil,
+        savedRoutesService: SavedRoutesService = .shared
     ) {
         self.route = route
         self.dataService = dataService ?? MockDataService()
+        self.savedRoutesService = savedRoutesService
+        self.isSaved = savedRoutesService.isSaved(routeId: route.id)
     }
 
     var durationText: String {
@@ -98,6 +103,15 @@ final class RouteDetailViewModel: ObservableObject {
 
     var sortedStops: [RouteStop] {
         route.stops.sorted { $0.order < $1.order }
+    }
+    
+    func toggleSaved() {
+        savedRoutesService.toggle(routeId: route.id)
+        isSaved = savedRoutesService.isSaved(routeId: route.id)
+    }
+    
+    func refreshSavedState() {
+        isSaved = savedRoutesService.isSaved(routeId: route.id)
     }
 
     func loadPlaces() async {
