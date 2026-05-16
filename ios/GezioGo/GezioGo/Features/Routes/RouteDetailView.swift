@@ -128,9 +128,14 @@ struct RouteDetailView: View {
                                 .font(AppTypography.bodyMedium)
                                 .foregroundStyle(AppColors.textPrimary)
 
-                            Text("İlk durak: \(firstStop.title)")
+                            Text("Apple Maps ile ilk uygun durağa yol tarifi al.")
                                 .font(AppTypography.caption)
                                 .foregroundStyle(AppColors.textSecondary)
+                                .lineLimit(2)
+
+                            Text("İlk durak: \(firstStop.title)")
+                                .font(AppTypography.captionMedium)
+                                .foregroundStyle(AppColors.teal)
                                 .lineLimit(2)
 
                             if let timeLabel = firstStop.timeLabel {
@@ -145,10 +150,10 @@ struct RouteDetailView: View {
                         viewModel.startRoute()
                     } label: {
                         HStack {
-                            Image(systemName: "map")
+                            Image(systemName: "location.fill")
                                 .font(.caption)
 
-                            Text("Apple Maps ile yol tarifi al")
+                            Text("Rotayı Apple Maps’te başlat")
                                 .font(AppTypography.captionMedium)
 
                             Spacer()
@@ -400,6 +405,8 @@ struct RouteDetailView: View {
                 }
 
                 if actionTitle != nil || canOpenDirections {
+                    Divider()
+
                     VStack(spacing: AppSpacing.sm) {
                         if let actionTitle {
                             Button {
@@ -422,9 +429,12 @@ struct RouteDetailView: View {
                                         .font(.caption)
                                 }
                                 .foregroundStyle(AppColors.teal)
-                                .padding(.top, AppSpacing.xs)
                             }
                             .buttonStyle(.plain)
+                        }
+
+                        if actionTitle != nil && canOpenDirections {
+                            Divider()
                         }
 
                         if canOpenDirections {
@@ -444,7 +454,6 @@ struct RouteDetailView: View {
                                         .font(.caption)
                                 }
                                 .foregroundStyle(AppColors.petrol)
-                                .padding(.top, AppSpacing.xs)
                             }
                             .buttonStyle(.plain)
                         }

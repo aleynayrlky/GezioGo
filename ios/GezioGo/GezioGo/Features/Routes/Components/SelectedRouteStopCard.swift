@@ -52,6 +52,10 @@ struct SelectedRouteStopCard: View {
                             .buttonStyle(.plain)
                         }
 
+                        if actionTitle != nil && canOpenDirections {
+                            Divider()
+                        }
+
                         if canOpenDirections {
                             Button {
                                 openDirections?()
@@ -121,5 +125,3 @@ struct SelectedRouteStopCard: View {
         }
     }
 }
-
-
