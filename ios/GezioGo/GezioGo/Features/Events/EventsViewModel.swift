@@ -57,6 +57,11 @@ final class EventsViewModel: ObservableObject {
             return "Bu şehir için henüz etkinlik eklenmemiş. Daha sonra tekrar kontrol edebilirsin."
         }
     }
+    
+    func clearFilters() {
+        selectedCategory = nil
+        searchText = ""
+    }
 
     var resultsTitle: String {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -89,10 +94,6 @@ final class EventsViewModel: ObservableObject {
         selectedCategory = category
     }
 
-    func clearFilters() {
-        selectedCategory = nil
-        searchText = ""
-    }
 
     private func eventMatchesSearch(_ event: Event, query: String) -> Bool {
         let normalizedQuery = query.localizedLowercase

@@ -72,6 +72,10 @@ final class PlaceListViewModel: ObservableObject {
     var resultsTitle: String {
         hasActiveSearch ? "Arama sonuçları" : "Sonuçlar"
     }
+    
+    func clearSearch() {
+        searchText = ""
+    }
 
     func loadPlaces() async {
         isLoading = true
@@ -84,10 +88,6 @@ final class PlaceListViewModel: ObservableObject {
         }
 
         isLoading = false
-    }
-
-    func clearSearch() {
-        searchText = ""
     }
 
     private func placeMatchesSearch(_ place: Place, query: String) -> Bool {

@@ -22,7 +22,7 @@ struct SearchBarView: View {
             TextField(placeholder, text: $text)
                 .font(AppTypography.body)
                 .foregroundStyle(AppColors.textPrimary)
-                .textInputAutocapitalization(.never)
+                .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
 
             if !text.isEmpty {
