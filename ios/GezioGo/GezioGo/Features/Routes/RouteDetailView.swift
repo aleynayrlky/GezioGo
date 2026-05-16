@@ -258,117 +258,25 @@ struct RouteDetailView: View {
         let actionTitle = viewModel.actionTitle(for: stop)
         let canOpenDirections = viewModel.canOpenDirections(for: stop)
 
-        return AppCard {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                HStack(alignment: .top, spacing: AppSpacing.md) {
-                    ZStack {
-                        Circle()
-                            .fill(viewModel.selectedStop?.id == stop.id ? AppColors.gold : AppColors.petrol)
-                            .frame(width: 38, height: 38)
-
-                        Text("\(stop.order)")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        HStack {
-                            AppTag(
-                                viewModel.stopTypeText(stop.type),
-                                iconName: viewModel.stopTypeIcon(stop.type)
-                            )
-
-                            if let timeLabel = stop.timeLabel {
-                                AppTag(timeLabel, iconName: "clock")
-                            }
-
-                            if viewModel.selectedStop?.id == stop.id {
-                                AppTag("Seçili", iconName: "checkmark")
-                            }
-
-                            if actionTitle != nil || canOpenDirections {
-                                AppTag("Aksiyon var", iconName: "arrow.up.right")
-                            }
-                        }
-
-                        Text(stop.title)
-                            .font(AppTypography.bodyMedium)
-                            .foregroundStyle(AppColors.textPrimary)
-
-                        if let durationMinutes = stop.durationMinutes {
-                            Text("\(durationMinutes) dk önerilir")
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
-                        }
-
-                        if let note = stop.note {
-                            Text(note)
-                                .font(AppTypography.body)
-                                .foregroundStyle(AppColors.textSecondary)
-                                .lineSpacing(3)
-                        }
-                    }
-
-                    Spacer()
+        return RouteStopCard(
+            stop: stop,
+            isSelected: viewModel.selectedStop?.id == stop.id,
+            stopTypeTitle: viewModel.stopTypeText(stop.type),
+            stopTypeIconName: viewModel.stopTypeIcon(stop.type),
+            actionTitle: actionTitle,
+            hasRelatedPlace: relatedPlace != nil,
+            canOpenDirections: canOpenDirections,
+            openDetail: {
+                if let relatedPlace {
+                    navigate(.placeDetail(place: relatedPlace))
+                } else if let relatedEvent {
+                    navigate(.eventDetail(event: relatedEvent))
                 }
-
-                if actionTitle != nil || canOpenDirections {
-                    Divider()
-
-                    VStack(spacing: AppSpacing.sm) {
-                        if let actionTitle {
-                            Button {
-                                if let relatedPlace {
-                                    navigate(.placeDetail(place: relatedPlace))
-                                } else if let relatedEvent {
-                                    navigate(.eventDetail(event: relatedEvent))
-                                }
-                            } label: {
-                                HStack {
-                                    Image(systemName: relatedPlace != nil ? "mappin.and.ellipse" : "calendar")
-                                        .font(.caption)
-
-                                    Text(actionTitle)
-                                        .font(AppTypography.captionMedium)
-
-                                    Spacer()
-
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                }
-                                .foregroundStyle(AppColors.teal)
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        if actionTitle != nil && canOpenDirections {
-                            Divider()
-                        }
-
-                        if canOpenDirections {
-                            Button {
-                                viewModel.openDirections(for: stop)
-                            } label: {
-                                HStack {
-                                    Image(systemName: "location.fill")
-                                        .font(.caption)
-
-                                    Text("Yol tarifi al")
-                                        .font(AppTypography.captionMedium)
-
-                                    Spacer()
-
-                                    Image(systemName: "arrow.up.right")
-                                        .font(.caption)
-                                }
-                                .foregroundStyle(AppColors.petrol)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                }
+            },
+            openDirections: {
+                viewModel.openDirections(for: stop)
             }
-        }
+        )
     }
 
     private var notesSection: some View {
