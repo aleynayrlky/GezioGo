@@ -94,5 +94,53 @@
     "isSaved": false,
     "createdAt": "2026-05-16T00:00:00+03:00",
     "updatedAt": "2026-05-16T00:00:00+03:00"
+  },
+  {
+    "id": "route_samsun_003",
+    "userId": "user_001",
+    "cityId": "samsun",
+    "title": "Samsun Kültür ve Etkinlik Akşamı",
+    "date": "2026-06-20",
+    "durationType": "half_day",
+    "budget": "medium",
+    "interests": ["culture", "food_drink"],
+    "transportType": "mixed",
+    "companions": "friends",
+    "tempo": "balanced",
+    "stops": [
+      {
+        "id": "route_samsun_003_stop_001",
+        "order": 1,
+        "type": "place",
+        "placeId": "atakum-sahili",
+        "eventId": null,
+        "title": "Atakum Sahili",
+        "timeLabel": "18:00 - 19:15",
+        "durationMinutes": 75,
+        "note": "Etkinlik öncesi sahilde yürüyüş ve hafif yeme içme molası için uygun.",
+        "latitude": 41.34,
+        "longitude": 36.25
+      },
+      {
+        "id": "route_samsun_003_stop_002",
+        "order": 2,
+        "type": "event",
+        "placeId": null,
+        "eventId": "samsun-caz-festivali-2026",
+        "title": "Samsun Caz Festivali",
+        "timeLabel": "20:00 - 23:00",
+        "durationMinutes": 180,
+        "note": "Akşamı Samsun’da kültür-sanat odaklı bir etkinlikle tamamla.",
+        "latitude": 41.29,
+        "longitude": 36.33
+      }
+    ],
+    "totalDurationMinutes": 300,
+    "totalDistanceKm": 9.2,
+    "estimatedCostLevel": "medium",
+    "aiPromptVersion": "v1",
+    "isSaved": false,
+    "createdAt": "2026-05-17T00:00:00+03:00",
+    "updatedAt": "2026-05-17T00:00:00+03:00"
   }
 ]
