@@ -19,8 +19,10 @@ struct RouteDetailView: View {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     heroSection
 
+                    routeActionSection
+
                     summarySection
-                    
+
                     mapSection
 
                     interestsSection
@@ -105,6 +107,67 @@ struct RouteDetailView: View {
         }
     }
 
+    @ViewBuilder
+    private var routeActionSection: some View {
+        if let firstStop = viewModel.firstNavigableStop {
+            AppCard {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    HStack(alignment: .top, spacing: AppSpacing.md) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: AppRadius.medium)
+                                .fill(AppColors.petrol)
+                                .frame(width: 52, height: 52)
+
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundStyle(AppColors.gold)
+                        }
+
+                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                            Text("Rotayı başlat")
+                                .font(AppTypography.bodyMedium)
+                                .foregroundStyle(AppColors.textPrimary)
+
+                            Text("İlk durak: \(firstStop.title)")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .lineLimit(2)
+
+                            if let timeLabel = firstStop.timeLabel {
+                                AppTag(timeLabel, iconName: "clock")
+                            }
+                        }
+
+                        Spacer()
+                    }
+
+                    Button {
+                        viewModel.startRoute()
+                    } label: {
+                        HStack {
+                            Image(systemName: "map")
+                                .font(.caption)
+
+                            Text("Apple Maps ile yol tarifi al")
+                                .font(AppTypography.captionMedium)
+
+                            Spacer()
+
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, AppSpacing.md)
+                        .padding(.vertical, AppSpacing.sm)
+                        .background(AppColors.petrol)
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
     private var summarySection: some View {
         AppCard {
             VStack(spacing: AppSpacing.md) {
@@ -164,7 +227,7 @@ struct RouteDetailView: View {
             }
         }
     }
-    
+
     private var mapSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
