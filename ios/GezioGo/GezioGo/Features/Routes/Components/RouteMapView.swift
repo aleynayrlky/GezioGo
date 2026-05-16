@@ -4,6 +4,34 @@ import MapKit
 struct RouteMapView: View {
     let stops: [RouteStop]
     @Binding var selectedStop: RouteStop?
+    
+    private var coordinateStops: [RouteStop] {
+        stops
+            .filter { stop in
+                stop.latitude != nil && stop.longitude != nil
+            }
+            .sorted { first, second in
+                first.order < second.order
+            }
+    }
+
+    private var routeCoordinates: [CLLocationCoordinate2D] {
+        coordinateStops.compactMap { stop in
+            guard let latitude = stop.latitude,
+                  let longitude = stop.longitude else {
+                return nil
+            }
+
+            return CLLocationCoordinate2D(
+                latitude: latitude,
+                longitude: longitude
+            )
+        }
+    }
+
+    private var hasRouteLine: Bool {
+        routeCoordinates.count >= 2
+    }
 
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(
@@ -18,7 +46,7 @@ struct RouteMapView: View {
 
     var body: some View {
         ZStack {
-            if mappableStops.isEmpty {
+            if coordinateStops.isEmpty {
                 emptyMapState
             } else {
                 mapContent
@@ -44,7 +72,7 @@ struct RouteMapView: View {
     private var mapContent: some View {
         Map(
             coordinateRegion: $region,
-            annotationItems: mappableStops
+            annotationItems: coordinateStops
         ) { stop in
             MapAnnotation(
                 coordinate: CLLocationCoordinate2D(
@@ -94,12 +122,6 @@ struct RouteMapView: View {
                 }
                 .padding(.horizontal, AppSpacing.lg)
             }
-        }
-    }
-
-    private var mappableStops: [RouteStop] {
-        stops.filter { stop in
-            stop.latitude != nil && stop.longitude != nil
         }
     }
 
@@ -178,7 +200,7 @@ struct RouteMapView: View {
     }
 
     private func configureInitialRegion() {
-        guard let firstStop = mappableStops.first,
+        guard let firstStop = coordinateStops.first,
               let latitude = firstStop.latitude,
               let longitude = firstStop.longitude else {
             return
