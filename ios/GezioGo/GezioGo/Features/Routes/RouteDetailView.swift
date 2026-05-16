@@ -163,47 +163,20 @@ struct RouteDetailView: View {
             selectedStopSummary
         }
     }
-    
+
     @ViewBuilder
     private var selectedStopSummary: some View {
         if let selectedStop = viewModel.selectedStop {
-            AppCard {
-                HStack(alignment: .top, spacing: AppSpacing.md) {
-                    ZStack {
-                        Circle()
-                            .fill(AppColors.gold)
-                            .frame(width: 40, height: 40)
+            let relatedPlace = viewModel.place(for: selectedStop)
 
-                        Text("\(selectedStop.order)")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-
-                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                        HStack(spacing: AppSpacing.xs) {
-                            AppTag(
-                                viewModel.stopTypeText(selectedStop.type),
-                                iconName: viewModel.stopTypeIcon(selectedStop.type)
-                            )
-
-                            if let timeLabel = selectedStop.timeLabel {
-                                AppTag(timeLabel, iconName: "clock")
-                            }
-                        }
-
-                        Text(selectedStop.title)
-                            .font(AppTypography.bodyMedium)
-                            .foregroundStyle(AppColors.textPrimary)
-
-                        if let note = selectedStop.note {
-                            Text(note)
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
-                                .lineSpacing(3)
-                        }
-                    }
-
-                    Spacer()
+            SelectedRouteStopCard(
+                stop: selectedStop,
+                relatedPlace: relatedPlace,
+                stopTypeTitle: viewModel.stopTypeText(selectedStop.type),
+                stopTypeIconName: viewModel.stopTypeIcon(selectedStop.type)
+            ) {
+                if let relatedPlace {
+                    navigate(.placeDetail(place: relatedPlace))
                 }
             }
         }
