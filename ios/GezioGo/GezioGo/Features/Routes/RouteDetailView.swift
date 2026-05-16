@@ -264,16 +264,18 @@ struct RouteDetailView: View {
                 stopTypeTitle: viewModel.stopTypeText(selectedStop.type),
                 stopTypeIconName: viewModel.stopTypeIcon(selectedStop.type),
                 actionTitle: viewModel.actionTitle(for: selectedStop),
-                canOpenDirections: viewModel.canOpenDirections(for: selectedStop)
-            ) {
-                if let relatedPlace {
-                    navigate(.placeDetail(place: relatedPlace))
-                } else if let relatedEvent {
-                    navigate(.eventDetail(event: relatedEvent))
+                canOpenDirections: viewModel.canOpenDirections(for: selectedStop),
+                openDetail: {
+                    if let relatedPlace {
+                        navigate(.placeDetail(place: relatedPlace))
+                    } else if let relatedEvent {
+                        navigate(.eventDetail(event: relatedEvent))
+                    }
+                },
+                openDirections: {
+                    viewModel.openDirections(for: selectedStop)
                 }
-            } openDirections: {
-                viewModel.openDirections(for: selectedStop)
-            }
+            )
         }
     }
 
@@ -341,6 +343,7 @@ struct RouteDetailView: View {
         let relatedPlace = viewModel.place(for: stop)
         let relatedEvent = viewModel.event(for: stop)
         let actionTitle = viewModel.actionTitle(for: stop)
+        let canOpenDirections = viewModel.canOpenDirections(for: stop)
 
         return AppCard {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
@@ -370,8 +373,8 @@ struct RouteDetailView: View {
                                 AppTag("Seçili", iconName: "checkmark")
                             }
 
-                            if actionTitle != nil {
-                                AppTag("Detay var", iconName: "chevron.right")
+                            if actionTitle != nil || canOpenDirections {
+                                AppTag("Aksiyon var", iconName: "arrow.up.right")
                             }
                         }
 
@@ -396,30 +399,56 @@ struct RouteDetailView: View {
                     Spacer()
                 }
 
-                if let actionTitle {
-                    Button {
-                        if let relatedPlace {
-                            navigate(.placeDetail(place: relatedPlace))
-                        } else if let relatedEvent {
-                            navigate(.eventDetail(event: relatedEvent))
+                if actionTitle != nil || canOpenDirections {
+                    VStack(spacing: AppSpacing.sm) {
+                        if let actionTitle {
+                            Button {
+                                if let relatedPlace {
+                                    navigate(.placeDetail(place: relatedPlace))
+                                } else if let relatedEvent {
+                                    navigate(.eventDetail(event: relatedEvent))
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: relatedPlace != nil ? "mappin.and.ellipse" : "calendar")
+                                        .font(.caption)
+
+                                    Text(actionTitle)
+                                        .font(AppTypography.captionMedium)
+
+                                    Spacer()
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                }
+                                .foregroundStyle(AppColors.teal)
+                                .padding(.top, AppSpacing.xs)
+                            }
+                            .buttonStyle(.plain)
                         }
-                    } label: {
-                        HStack {
-                            Image(systemName: relatedPlace != nil ? "mappin.and.ellipse" : "calendar")
-                                .font(.caption)
 
-                            Text(actionTitle)
-                                .font(AppTypography.captionMedium)
+                        if canOpenDirections {
+                            Button {
+                                viewModel.openDirections(for: stop)
+                            } label: {
+                                HStack {
+                                    Image(systemName: "location.fill")
+                                        .font(.caption)
 
-                            Spacer()
+                                    Text("Yol tarifi al")
+                                        .font(AppTypography.captionMedium)
 
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
+                                    Spacer()
+
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.caption)
+                                }
+                                .foregroundStyle(AppColors.petrol)
+                                .padding(.top, AppSpacing.xs)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .foregroundStyle(AppColors.teal)
-                        .padding(.top, AppSpacing.xs)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
