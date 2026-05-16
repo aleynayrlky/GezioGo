@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RouteCard: View {
     let route: TripRoute
+    let isSaved: Bool
     var action: (() -> Void)? = nil
 
     var body: some View {
@@ -48,10 +49,16 @@ struct RouteCard: View {
 
             Spacer()
 
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(AppColors.textSecondary)
-                .padding(.top, AppSpacing.xs)
+            VStack(alignment: .trailing, spacing: AppSpacing.sm) {
+                Image(systemName: isSaved ? "bookmark.fill" : "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(isSaved ? AppColors.gold : AppColors.textSecondary)
+
+                if isSaved {
+                    AppTag("Kaydedildi", iconName: "bookmark.fill")
+                }
+            }
+            .padding(.top, AppSpacing.xs)
         }
     }
 
@@ -181,6 +188,9 @@ struct RouteCard: View {
     private var tagRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: AppSpacing.xs) {
+                if isSaved {
+                    AppTag("Kaydedildi", iconName: "bookmark.fill")
+                }
                 AppTag(durationTypeText, iconName: "calendar")
 
                 if let transportType = route.transportType {

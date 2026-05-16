@@ -32,6 +32,9 @@ struct RoutesView: View {
         .task {
             await viewModel.loadRoutes()
         }
+        .onAppear {
+            viewModel.refreshSavedRoutes()
+        }
     }
 
     private var headerView: some View {
@@ -89,7 +92,10 @@ struct RoutesView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.featuredRoutes) { route in
-                    RouteCard(route: route) {
+                    RouteCard(
+                        route: route,
+                        isSaved: viewModel.isSaved(route)
+                    ) {
                         navigate(.routeDetail(route: route))
                     }
                 }
