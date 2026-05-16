@@ -8,11 +8,12 @@
     "durationType": "one_day",
     "budget": "medium",
     "interests": ["history", "nature", "food_drink"],
-    "transportType": "walking",
+    "transportType": "mixed",
     "companions": "friends",
     "tempo": "balanced",
     "stops": [
       {
+        "id": "route_samsun_001_stop_001",
         "order": 1,
         "type": "place",
         "placeId": "bandirma-vapuru-muzesi",
@@ -25,6 +26,7 @@
         "longitude": 36.36
       },
       {
+        "id": "route_samsun_001_stop_002",
         "order": 2,
         "type": "place",
         "placeId": "atakum-sahili",
