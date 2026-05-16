@@ -23,6 +23,8 @@ struct FavoritesView: View {
                     headerView
 
                     contentSection
+
+                    savedRoutesSection
                 }
                 .padding(AppSpacing.lg)
             }
@@ -31,15 +33,22 @@ struct FavoritesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.loadFavorites()
+            await viewModel.refreshSavedRoutes()
         }
         .onAppear {
             Task {
                 await viewModel.refreshFavorites()
+                await viewModel.refreshSavedRoutes()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .favoritesDidChange)) { _ in
             Task {
                 await viewModel.refreshFavorites()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .savedRoutesDidChange)) { _ in
+            Task {
+                await viewModel.refreshSavedRoutes()
             }
         }
         .toolbar {
@@ -65,7 +74,7 @@ struct FavoritesView: View {
                 .font(AppTypography.title)
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("Gezmek istediğin mekanları favorilerine ekleyerek daha sonra hızlıca ulaşabilirsin.")
+            Text("Gezmek istediğin mekanları ve rotaları kaydederek daha sonra hızlıca ulaşabilirsin.")
                 .font(AppTypography.body)
                 .foregroundStyle(AppColors.textSecondary)
                 .lineSpacing(4)
@@ -81,6 +90,7 @@ struct FavoritesView: View {
             ErrorStateView(message: errorMessage) {
                 Task {
                     await viewModel.loadFavorites()
+                    await viewModel.refreshSavedRoutes()
                 }
             }
 
@@ -92,10 +102,52 @@ struct FavoritesView: View {
         }
     }
 
+    @ViewBuilder
+    private var savedRoutesSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+            HStack {
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    Text("Kaydedilen rotalar")
+                        .font(AppTypography.subtitle)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Daha sonra incelemek istediğin gezi planları")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+
+                Spacer()
+
+                Text("\(viewModel.savedRoutes.count) rota")
+                    .font(AppTypography.captionMedium)
+                    .foregroundStyle(AppColors.teal)
+            }
+
+            if viewModel.savedRoutes.isEmpty {
+                EmptyStateView(
+                    title: "Kaydedilen rota yok",
+                    message: "Rota detay ekranından beğendiğin rotaları kaydedebilirsin.",
+                    iconName: "bookmark"
+                )
+            } else {
+                VStack(spacing: AppSpacing.md) {
+                    ForEach(viewModel.savedRoutes) { route in
+                        RouteCard(
+                            route: route,
+                            isSaved: true
+                        ) {
+                            navigate(.routeDetail(route: route))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private var emptyFavoritesView: some View {
         EmptyStateView(
             title: "Henüz favorin yok",
-            message: "Keşfet ekranından beğendiğin mekanları favorilerine ekleyebilirsin.",
+            message: "Keşfet ekranından beğendiğin mekanları favorilerine, rota detayından gezi planlarını kaydedebilirsin.",
             iconName: "heart",
             buttonTitle: "Keşfetmeye Git"
         ) {
