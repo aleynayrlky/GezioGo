@@ -155,6 +155,11 @@ struct RouteDetailView: View {
                     .foregroundStyle(AppColors.teal)
             }
 
+            Text("Duraklar haritada sıra numarasıyla gösterilir. Bir pine dokunarak durak detayını ve yol tarifi seçeneklerini görebilirsin.")
+                .font(AppTypography.caption)
+                .foregroundStyle(AppColors.textSecondary)
+                .lineSpacing(3)
+
             RouteMapView(
                 stops: viewModel.sortedStops,
                 selectedStop: $viewModel.selectedStop
