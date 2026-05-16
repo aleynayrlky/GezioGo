@@ -38,7 +38,17 @@ struct RouteDetailView: View {
         .navigationTitle(viewModel.route.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                ShareLink(
+                    item: viewModel.shareText,
+                    subject: Text(viewModel.shareTitle),
+                    message: Text(viewModel.shareText)
+                ) {
+                    Image(systemName: "square.and.arrow.up")
+                        .foregroundStyle(AppColors.petrol)
+                }
+                .accessibilityLabel("Rotayı paylaş")
+
                 Button {
                     withAnimation {
                         viewModel.toggleSaved()
