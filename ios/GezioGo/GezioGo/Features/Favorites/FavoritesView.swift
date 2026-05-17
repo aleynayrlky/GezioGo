@@ -207,11 +207,34 @@ struct FavoritesView: View {
             }
 
             if viewModel.savedRoutes.isEmpty {
-                EmptyStateView(
-                    title: "Kaydedilen rota yok",
-                    message: "Rota detay ekranından beğendiğin rotaları kaydedebilirsin.",
-                    iconName: "bookmark"
-                )
+                AppCard {
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        HStack(alignment: .top, spacing: AppSpacing.md) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: AppRadius.medium)
+                                    .fill(AppColors.cream)
+                                    .frame(width: 48, height: 48)
+
+                                Image(systemName: "bookmark")
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .foregroundStyle(AppColors.petrol)
+                            }
+
+                            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                                Text("Henüz kayıtlı rota yok")
+                                    .font(AppTypography.bodyMedium)
+                                    .foregroundStyle(AppColors.textPrimary)
+
+                                Text("Beğendiğin rotaları kaydederek daha sonra buradan hızlıca ulaşabilirsin.")
+                                    .font(AppTypography.caption)
+                                    .foregroundStyle(AppColors.textSecondary)
+                                    .lineSpacing(3)
+                            }
+
+                            Spacer()
+                        }
+                    }
+                }
             } else {
                 VStack(spacing: AppSpacing.md) {
                     ForEach(viewModel.savedRoutes) { route in
@@ -229,6 +252,7 @@ struct FavoritesView: View {
                             ) {
                                 Label("Rotayı paylaş", systemImage: "square.and.arrow.up")
                             }
+
                             Button(role: .destructive) {
                                 viewModel.removeSavedRoute(route)
                             } label: {
