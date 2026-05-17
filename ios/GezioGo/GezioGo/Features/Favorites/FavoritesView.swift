@@ -189,9 +189,7 @@ struct FavoritesView: View {
 
                 Spacer()
 
-                Text("\(viewModel.favoritePlaces.count) mekan")
-                    .font(AppTypography.captionMedium)
-                    .foregroundStyle(AppColors.teal)
+                sectionCountBadge("\(viewModel.favoritePlaces.count) mekan")
             }
 
             VStack(spacing: AppSpacing.md) {
