@@ -103,15 +103,18 @@ struct FavoritesView: View {
                     await viewModel.refreshSavedRoutes()
                 }
             }
-        } else if viewModel.favoritePlaces.isEmpty {
+        } else if viewModel.filteredFavoritePlaces.isEmpty {
             FavoriteEmptyStateCard(
-                iconName: "heart",
-                title: "Henüz favori mekan yok",
-                message: "Gezilecek yerleri favorilerine ekleyerek planlarını daha kolay oluşturabilirsin.",
-                buttonTitle: "Keşfetmeye Git"
-            ) {
-                navigate(.explore(cityId: cityId))
-            }
+                iconName: viewModel.hasActiveSearch ? "magnifyingglass" : "heart",
+                title: viewModel.hasActiveSearch ? "Mekan bulunamadı" : "Henüz favori mekan yok",
+                message: viewModel.hasActiveSearch
+                    ? "Aramana uygun favori mekan bulunamadı. Farklı bir kelime deneyebilirsin."
+                    : "Gezilecek yerleri favorilerine ekleyerek planlarını daha kolay oluşturabilirsin.",
+                buttonTitle: viewModel.hasActiveSearch ? nil : "Keşfetmeye Git",
+                action: viewModel.hasActiveSearch ? nil : {
+                    navigate(.explore(cityId: cityId))
+                }
+            )
         } else {
             favoritesList
         }
@@ -197,11 +200,11 @@ struct FavoritesView: View {
 
                 Spacer()
 
-                sectionCountBadge("\(viewModel.favoritePlaces.count) mekan")
+                sectionCountBadge("\(viewModel.filteredFavoritePlaces.count) mekan")
             }
 
             VStack(spacing: AppSpacing.md) {
-                ForEach(viewModel.favoritePlaces) { place in
+                ForEach(viewModel.filteredFavoritePlaces) { place in
                     favoritePlaceCard(place)
                 }
             }
