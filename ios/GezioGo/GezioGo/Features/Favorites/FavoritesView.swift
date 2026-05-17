@@ -233,9 +233,7 @@ struct FavoritesView: View {
 
                 Spacer()
 
-                Text("\(viewModel.savedRoutes.count) rota")
-                    .font(AppTypography.captionMedium)
-                    .foregroundStyle(AppColors.teal)
+                sectionCountBadge("\(viewModel.savedRoutes.count) rota")
             }
 
             if viewModel.savedRoutes.isEmpty {
@@ -295,6 +293,16 @@ struct FavoritesView: View {
                 }
             }
         }
+    }
+    
+    private func sectionCountBadge(_ text: String) -> some View {
+        Text(text)
+            .font(AppTypography.captionMedium)
+            .foregroundStyle(AppColors.teal)
+            .padding(.horizontal, AppSpacing.sm)
+            .padding(.vertical, AppSpacing.xs)
+            .background(AppColors.cream)
+            .clipShape(Capsule())
     }
 
     private var emptyFavoritesView: some View {
