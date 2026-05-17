@@ -30,6 +30,10 @@ final class FavoritesViewModel: ObservableObject {
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
+    var hasSearchResults: Bool {
+        !filteredSavedRoutes.isEmpty || !filteredFavoritePlaces.isEmpty
+    }
+    
     var filteredSavedRoutes: [TripRoute] {
         let query = normalizedSearchText
 

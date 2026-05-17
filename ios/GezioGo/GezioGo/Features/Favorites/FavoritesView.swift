@@ -21,14 +21,18 @@ struct FavoritesView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     headerView
-                    
+
                     summarySection
-                    
+
                     searchSection
 
-                    contentSection
+                    if viewModel.hasActiveSearch && !viewModel.hasSearchResults {
+                        emptySearchResultSection
+                    } else {
+                        contentSection
 
-                    savedRoutesSection
+                        savedRoutesSection
+                    }
                 }
                 .padding(AppSpacing.lg)
             }
@@ -84,11 +88,30 @@ struct FavoritesView: View {
                 .lineSpacing(4)
         }
     }
-    
+
     private var summarySection: some View {
         FavoritesSummaryCard(
             savedRoutesCount: viewModel.savedRoutes.count,
             favoritePlacesCount: viewModel.favoritePlaces.count
+        )
+    }
+
+    private var searchSection: some View {
+        SearchBarView(
+            text: $viewModel.searchText,
+            placeholder: "Favorilerde ara"
+        )
+    }
+
+    private var emptySearchResultSection: some View {
+        FavoriteEmptyStateCard(
+            iconName: "magnifyingglass",
+            title: "Sonuç bulunamadı",
+            message: "Aramana uygun favori bulunamadı. Farklı bir kelime deneyebilirsin.",
+            buttonTitle: "Aramayı temizle",
+            action: {
+                viewModel.searchText = ""
+            }
         )
     }
 
@@ -156,7 +179,7 @@ struct FavoritesView: View {
             }
         }
     }
-    
+
     private func savedRouteCard(_ route: TripRoute) -> some View {
         RouteCard(
             route: route,
@@ -180,7 +203,7 @@ struct FavoritesView: View {
             }
         }
     }
-    
+
     private func sectionCountBadge(_ text: String) -> some View {
         Text(text)
             .font(AppTypography.captionMedium)
@@ -210,14 +233,7 @@ struct FavoritesView: View {
             }
         }
     }
-    
-    private var searchSection: some View {
-        SearchBarView(
-            text: $viewModel.searchText,
-            placeholder: "Favorilerde ara"
-        )
-    }
-    
+
     private func favoritePlaceCard(_ place: Place) -> some View {
         PlaceCard(place: place, isFavorite: true) {
             navigate(.placeDetail(place: place))
