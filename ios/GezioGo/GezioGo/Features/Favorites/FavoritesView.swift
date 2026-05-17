@@ -133,18 +133,20 @@ struct FavoritesView: View {
 
                 Spacer()
 
-                sectionCountBadge("\(viewModel.savedRoutes.count) rota")
+                sectionCountBadge("\(viewModel.filteredSavedRoutes.count) rota")
             }
 
-            if viewModel.savedRoutes.isEmpty {
+            if viewModel.filteredSavedRoutes.isEmpty {
                 FavoriteEmptyStateCard(
-                    iconName: "bookmark",
-                    title: "Henüz kayıtlı rota yok",
-                    message: "Beğendiğin rotaları kaydederek daha sonra buradan hızlıca ulaşabilirsin."
+                    iconName: viewModel.hasActiveSearch ? "magnifyingglass" : "bookmark",
+                    title: viewModel.hasActiveSearch ? "Rota bulunamadı" : "Henüz kayıtlı rota yok",
+                    message: viewModel.hasActiveSearch
+                        ? "Aramana uygun kayıtlı rota bulunamadı. Farklı bir kelime deneyebilirsin."
+                        : "Beğendiğin rotaları kaydederek daha sonra buradan hızlıca ulaşabilirsin."
                 )
             } else {
                 VStack(spacing: AppSpacing.md) {
-                    ForEach(viewModel.savedRoutes) { route in
+                    ForEach(viewModel.filteredSavedRoutes) { route in
                         savedRouteCard(route)
                     }
                 }
