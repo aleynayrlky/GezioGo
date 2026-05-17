@@ -161,7 +161,6 @@ struct FavoritesView: View {
     private var contentSection: some View {
         if viewModel.isLoading {
             LoadingView("Favoriler yükleniyor...")
-
         } else if let errorMessage = viewModel.errorMessage {
             ErrorStateView(message: errorMessage) {
                 Task {
@@ -169,17 +168,50 @@ struct FavoritesView: View {
                     await viewModel.refreshSavedRoutes()
                 }
             }
-
         } else if viewModel.favoritePlaces.isEmpty {
-            EmptyStateView(
-                title: "Favori mekan yok",
-                message: "Keşfet ekranından beğendiğin mekanları favorilerine ekleyebilirsin.",
-                iconName: "heart",
-                buttonTitle: "Keşfetmeye Git"
-            ) {
-                navigate(.explore(cityId: cityId))
-            }
+            AppCard {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
+                    HStack(alignment: .top, spacing: AppSpacing.md) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: AppRadius.medium)
+                                .fill(AppColors.cream)
+                                .frame(width: 48, height: 48)
 
+                            Image(systemName: "heart")
+                                .font(.system(size: 22, weight: .semibold))
+                                .foregroundStyle(AppColors.petrol)
+                        }
+
+                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                            Text("Henüz favori mekan yok")
+                                .font(AppTypography.bodyMedium)
+                                .foregroundStyle(AppColors.textPrimary)
+
+                            Text("Gezilecek yerleri favorilerine ekleyerek planlarını daha kolay oluşturabilirsin.")
+                                .font(AppTypography.caption)
+                                .foregroundStyle(AppColors.textSecondary)
+                                .lineSpacing(3)
+
+                            Button {
+                                navigate(.explore(cityId: cityId))
+                            } label: {
+                                HStack(spacing: AppSpacing.xs) {
+                                    Text("Keşfetmeye Git")
+                                        .font(AppTypography.captionMedium)
+
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                }
+                                .foregroundStyle(AppColors.teal)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.top, AppSpacing.xs)
+                        }
+
+                        Spacer()
+                    }
+                }
+            }
         } else {
             favoritesList
         }
