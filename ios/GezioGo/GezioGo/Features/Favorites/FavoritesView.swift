@@ -143,29 +143,33 @@ struct FavoritesView: View {
             } else {
                 VStack(spacing: AppSpacing.md) {
                     ForEach(viewModel.savedRoutes) { route in
-                        RouteCard(
-                            route: route,
-                            isSaved: true
-                        ) {
-                            navigate(.routeDetail(route: route))
-                        }
-                        .contextMenu {
-                            ShareLink(
-                                item: RouteShareTextBuilder.shareText(for: route),
-                                subject: Text(RouteShareTextBuilder.shareTitle(for: route)),
-                                message: Text(RouteShareTextBuilder.shareText(for: route))
-                            ) {
-                                Label("Rotayı paylaş", systemImage: "square.and.arrow.up")
-                            }
-
-                            Button(role: .destructive) {
-                                viewModel.removeSavedRoute(route)
-                            } label: {
-                                Label("Kaydedilenlerden çıkar", systemImage: "bookmark.slash")
-                            }
-                        }
+                        savedRouteCard(route)
                     }
                 }
+            }
+        }
+    }
+    
+    private func savedRouteCard(_ route: TripRoute) -> some View {
+        RouteCard(
+            route: route,
+            isSaved: true
+        ) {
+            navigate(.routeDetail(route: route))
+        }
+        .contextMenu {
+            ShareLink(
+                item: RouteShareTextBuilder.shareText(for: route),
+                subject: Text(RouteShareTextBuilder.shareTitle(for: route)),
+                message: Text(RouteShareTextBuilder.shareText(for: route))
+            ) {
+                Label("Rotayı paylaş", systemImage: "square.and.arrow.up")
+            }
+
+            Button(role: .destructive) {
+                viewModel.removeSavedRoute(route)
+            } label: {
+                Label("Kaydedilenlerden çıkar", systemImage: "bookmark.slash")
             }
         }
     }
