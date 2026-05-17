@@ -187,7 +187,7 @@ struct FavoritesView: View {
     private var favoritesList: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text("Favori mekanların")
+                Text("Favori mekanlar")
                     .font(AppTypography.subtitle)
                     .foregroundStyle(AppColors.textPrimary)
 
@@ -198,24 +198,28 @@ struct FavoritesView: View {
 
             VStack(spacing: AppSpacing.md) {
                 ForEach(viewModel.favoritePlaces) { place in
-                    PlaceCard(place: place, isFavorite: true) {
-                        navigate(.placeDetail(place: place))
-                    }
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            viewModel.removeFavorite(place)
-                        } label: {
-                            Label("Favorilerden çıkar", systemImage: "heart.slash")
-                        }
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            viewModel.removeFavorite(place)
-                        } label: {
-                            Label("Çıkar", systemImage: "heart.slash")
-                        }
-                    }
+                    favoritePlaceCard(place)
                 }
+            }
+        }
+    }
+    
+    private func favoritePlaceCard(_ place: Place) -> some View {
+        PlaceCard(place: place, isFavorite: true) {
+            navigate(.placeDetail(place: place))
+        }
+        .contextMenu {
+            Button(role: .destructive) {
+                viewModel.removeFavorite(place)
+            } label: {
+                Label("Favorilerden çıkar", systemImage: "heart.slash")
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                viewModel.removeFavorite(place)
+            } label: {
+                Label("Çıkar", systemImage: "heart.slash")
             }
         }
     }
