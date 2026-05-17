@@ -23,6 +23,8 @@ struct FavoritesView: View {
                     headerView
                     
                     summarySection
+                    
+                    searchSection
 
                     contentSection
 
@@ -202,6 +204,13 @@ struct FavoritesView: View {
                 }
             }
         }
+    }
+    
+    private var searchSection: some View {
+        SearchBarView(
+            text: $viewModel.searchText,
+            placeholder: "Favorilerde ara"
+        )
     }
     
     private func favoritePlaceCard(_ place: Place) -> some View {
