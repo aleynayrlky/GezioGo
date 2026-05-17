@@ -102,48 +102,13 @@ struct FavoritesView: View {
                 }
             }
         } else if viewModel.favoritePlaces.isEmpty {
-            AppCard {
-                VStack(alignment: .leading, spacing: AppSpacing.md) {
-                    HStack(alignment: .top, spacing: AppSpacing.md) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: AppRadius.medium)
-                                .fill(AppColors.cream)
-                                .frame(width: 48, height: 48)
-
-                            Image(systemName: "heart")
-                                .font(.system(size: 22, weight: .semibold))
-                                .foregroundStyle(AppColors.petrol)
-                        }
-
-                        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                            Text("Henüz favori mekan yok")
-                                .font(AppTypography.bodyMedium)
-                                .foregroundStyle(AppColors.textPrimary)
-
-                            Text("Gezilecek yerleri favorilerine ekleyerek planlarını daha kolay oluşturabilirsin.")
-                                .font(AppTypography.caption)
-                                .foregroundStyle(AppColors.textSecondary)
-                                .lineSpacing(3)
-
-                            Button {
-                                navigate(.explore(cityId: cityId))
-                            } label: {
-                                HStack(spacing: AppSpacing.xs) {
-                                    Text("Keşfetmeye Git")
-                                        .font(AppTypography.captionMedium)
-
-                                    Image(systemName: "chevron.right")
-                                        .font(.caption)
-                                }
-                                .foregroundStyle(AppColors.teal)
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.top, AppSpacing.xs)
-                        }
-
-                        Spacer()
-                    }
-                }
+            FavoriteEmptyStateCard(
+                iconName: "heart",
+                title: "Henüz favori mekan yok",
+                message: "Gezilecek yerleri favorilerine ekleyerek planlarını daha kolay oluşturabilirsin.",
+                buttonTitle: "Keşfetmeye Git"
+            ) {
+                navigate(.explore(cityId: cityId))
             }
         } else {
             favoritesList
@@ -170,34 +135,11 @@ struct FavoritesView: View {
             }
 
             if viewModel.savedRoutes.isEmpty {
-                AppCard {
-                    VStack(alignment: .leading, spacing: AppSpacing.md) {
-                        HStack(alignment: .top, spacing: AppSpacing.md) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: AppRadius.medium)
-                                    .fill(AppColors.cream)
-                                    .frame(width: 48, height: 48)
-
-                                Image(systemName: "bookmark")
-                                    .font(.system(size: 22, weight: .semibold))
-                                    .foregroundStyle(AppColors.petrol)
-                            }
-
-                            VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                                Text("Henüz kayıtlı rota yok")
-                                    .font(AppTypography.bodyMedium)
-                                    .foregroundStyle(AppColors.textPrimary)
-
-                                Text("Beğendiğin rotaları kaydederek daha sonra buradan hızlıca ulaşabilirsin.")
-                                    .font(AppTypography.caption)
-                                    .foregroundStyle(AppColors.textSecondary)
-                                    .lineSpacing(3)
-                            }
-
-                            Spacer()
-                        }
-                    }
-                }
+                FavoriteEmptyStateCard(
+                    iconName: "bookmark",
+                    title: "Henüz kayıtlı rota yok",
+                    message: "Beğendiğin rotaları kaydederek daha sonra buradan hızlıca ulaşabilirsin."
+                )
             } else {
                 VStack(spacing: AppSpacing.md) {
                     ForEach(viewModel.savedRoutes) { route in
