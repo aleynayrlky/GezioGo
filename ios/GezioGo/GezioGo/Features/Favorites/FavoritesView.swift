@@ -21,6 +21,8 @@ struct FavoritesView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     headerView
+                    
+                    summarySection
 
                     contentSection
 
@@ -78,6 +80,80 @@ struct FavoritesView: View {
                 .font(AppTypography.body)
                 .foregroundStyle(AppColors.textSecondary)
                 .lineSpacing(4)
+        }
+    }
+    
+    private var summarySection: some View {
+        AppCard {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                HStack(spacing: AppSpacing.md) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: AppRadius.medium)
+                            .fill(AppColors.petrol)
+                            .frame(width: 52, height: 52)
+
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 22, weight: .semibold))
+                            .foregroundStyle(AppColors.gold)
+                    }
+
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("Favorilerin")
+                            .font(AppTypography.subtitle)
+                            .foregroundStyle(AppColors.textPrimary)
+
+                        Text("Kaydettiğin rota ve mekanlara buradan hızlıca ulaşabilirsin.")
+                            .font(AppTypography.caption)
+                            .foregroundStyle(AppColors.textSecondary)
+                            .lineSpacing(3)
+                    }
+
+                    Spacer()
+                }
+
+                Divider()
+
+                HStack(spacing: AppSpacing.md) {
+                    summaryItem(
+                        title: "Kayıtlı rota",
+                        value: "\(viewModel.savedRoutes.count)",
+                        iconName: "bookmark.fill"
+                    )
+
+                    Divider()
+                        .frame(height: 36)
+
+                    summaryItem(
+                        title: "Favori mekan",
+                        value: "\(viewModel.favoritePlaces.count)",
+                        iconName: "heart.fill"
+                    )
+                }
+            }
+        }
+    }
+    
+    private func summaryItem(
+        title: String,
+        value: String,
+        iconName: String
+    ) -> some View {
+        HStack(spacing: AppSpacing.sm) {
+            Image(systemName: iconName)
+                .font(.caption)
+                .foregroundStyle(AppColors.teal)
+
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                Text(value)
+                    .font(AppTypography.bodyMedium)
+                    .foregroundStyle(AppColors.textPrimary)
+
+                Text(title)
+                    .font(AppTypography.caption)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+
+            Spacer()
         }
     }
 
