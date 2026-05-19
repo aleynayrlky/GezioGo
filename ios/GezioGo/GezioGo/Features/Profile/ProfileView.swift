@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     let cityId: String
+    var onChangeCity: (() -> Void)? = nil
 
     @Environment(\.navigate) private var navigate
 
@@ -94,10 +95,30 @@ struct ProfileView: View {
                         .foregroundStyle(AppColors.gold)
                 }
 
-                Text("Şimdilik pilot şehir olarak Samsun kullanılıyor. Çoklu şehir seçimi ilerleyen aşamalarda kalıcı hale getirilecek.")
+                Text("Ana Sayfa ve Keşfet içerikleri seçili şehre göre gösterilir. İstersen şehir seçimini değiştirebilirsin.")
                     .font(AppTypography.body)
                     .foregroundStyle(AppColors.textSecondary)
                     .lineSpacing(4)
+
+                Button {
+                    onChangeCity?()
+                } label: {
+                    HStack(spacing: AppSpacing.sm) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.caption)
+
+                        Text("Şehri değiştir")
+                            .font(AppTypography.captionMedium)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(AppColors.teal)
+                    .padding(.top, AppSpacing.xs)
+                }
+                .buttonStyle(.plain)
             }
         }
     }

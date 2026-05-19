@@ -45,7 +45,15 @@ struct RootView: View {
 
             case .main:
                 if let selectedCityId = appState.selectedCityId {
-                    MainTabBarView(cityId: selectedCityId)
+                    MainTabBarView(
+                        cityId: selectedCityId,
+                        onChangeCity: {
+                            appState.resetCitySelection()
+                            withAnimation {
+                                launchState = .citySelection
+                            }
+                        }
+                    )
                 } else {
                     CitySelectionView { city in
                         appState.selectCity(city)

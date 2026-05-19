@@ -3,6 +3,7 @@ import UIKit
 
 struct MainTabBarView: View {
     let cityId: String
+    var onChangeCity: (() -> Void)? = nil
 
     @State private var selectedTab: MainTab = .home
     @State private var homePath: [AppRoute] = []
@@ -59,7 +60,10 @@ struct MainTabBarView: View {
                 .tag(MainTab.favorites)
 
                 NavigationStack(path: $profilePath) {
-                    ProfileView(cityId: cityId)
+                    ProfileView(
+                        cityId: cityId,
+                        onChangeCity: onChangeCity
+                    )
                 }
                 .tag(MainTab.profile)
             }
@@ -226,12 +230,24 @@ private struct AIPlannerPlaceholderView: View {
             VStack(spacing: AppSpacing.lg) {
                 ZStack {
                     Circle()
-                        .fill(AppColors.teal)
-                        .frame(width: 72, height: 72)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    AppColors.teal,
+                                    AppColors.petrol
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 76, height: 76)
+                        .shadow(color: AppColors.teal.opacity(0.28), radius: 14, x: 0, y: 8)
 
-                    Image(systemName: "wand.and.stars")
-                        .font(.system(size: 30, weight: .semibold))
-                        .foregroundStyle(.white)
+                    Image("gezioGoLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 54, height: 54)
+                        .clipShape(Circle())
                 }
 
                 VStack(spacing: AppSpacing.sm) {
@@ -244,6 +260,21 @@ private struct AIPlannerPlaceholderView: View {
                         .foregroundStyle(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
+
+                    Text("Başlangıçta seçili şehir: \(cityId.capitalized)")
+                        .font(AppTypography.captionMedium)
+                        .foregroundStyle(AppColors.teal)
+                        .padding(.horizontal, AppSpacing.md)
+                        .padding(.vertical, AppSpacing.sm)
+                        .background(AppColors.cream)
+                        .clipShape(Capsule())
+
+                    Text("Planla ekranında şehir alanı ayrıca seçilebilecek. Yani ana sayfa Samsun’u gösterirken burada başka şehir için rota oluşturabileceksin.")
+                        .font(AppTypography.caption)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                        .padding(.horizontal, AppSpacing.lg)
                 }
 
                 AppTag("AI rota oluşturma yakında", iconName: "sparkles")
