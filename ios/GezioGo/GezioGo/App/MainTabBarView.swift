@@ -7,7 +7,7 @@ struct MainTabBarView: View {
     @State private var selectedTab: MainTab = .home
     @State private var homePath: [AppRoute] = []
     @State private var explorePath: [AppRoute] = []
-    @State private var mapPath: [AppRoute] = []
+    @State private var plannerPath: [AppRoute] = []
     @State private var favoritesPath: [AppRoute] = []
     @State private var profilePath: [AppRoute] = []
 
@@ -41,19 +41,19 @@ struct MainTabBarView: View {
             }
             .tag(MainTab.explore)
 
-            NavigationStack(path: $mapPath) {
-                MapExploreView(cityId: cityId)
+            NavigationStack(path: $plannerPath) {
+                AIPlannerPlaceholderView(cityId: cityId)
                     .navigationDestination(for: AppRoute.self) { route in
                         destination(for: route)
                     }
             }
             .environment(\.navigate) { route in
-                mapPath.append(route)
+                plannerPath.append(route)
             }
             .tabItem {
-                tabLabel(for: .map)
+                tabLabel(for: .planner)
             }
-            .tag(MainTab.map)
+            .tag(MainTab.planner)
 
             NavigationStack(path: $favoritesPath) {
                 FavoritesView(cityId: cityId)
@@ -123,6 +123,46 @@ struct MainTabBarView: View {
 
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+}
+
+private struct AIPlannerPlaceholderView: View {
+    let cityId: String
+
+    var body: some View {
+        ZStack {
+            AppColors.background
+                .ignoresSafeArea()
+
+            VStack(spacing: AppSpacing.lg) {
+                ZStack {
+                    Circle()
+                        .fill(AppColors.teal)
+                        .frame(width: 72, height: 72)
+
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+
+                VStack(spacing: AppSpacing.sm) {
+                    Text("Planla")
+                        .font(AppTypography.title)
+                        .foregroundStyle(AppColors.textPrimary)
+
+                    Text("Yapay zekâ ile sana özel gezi rotanı oluşturacağın alan burada olacak.")
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+
+                AppTag("AI rota oluşturma yakında", iconName: "sparkles")
+            }
+            .padding(AppSpacing.lg)
+        }
+        .navigationTitle("Planla")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

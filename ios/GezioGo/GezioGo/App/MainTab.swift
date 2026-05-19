@@ -3,7 +3,7 @@ import Foundation
 enum MainTab: Hashable {
     case home
     case explore
-    case map
+    case planner
     case favorites
     case profile
 
@@ -13,8 +13,8 @@ enum MainTab: Hashable {
             return "Ana Sayfa"
         case .explore:
             return "Keşfet"
-        case .map:
-            return "Harita"
+        case .planner:
+            return "Planla"
         case .favorites:
             return "Favoriler"
         case .profile:
@@ -28,8 +28,8 @@ enum MainTab: Hashable {
             return "house"
         case .explore:
             return "sparkles"
-        case .map:
-            return "map"
+        case .planner:
+            return "wand.and.stars"
         case .favorites:
             return "heart"
         case .profile:
@@ -43,18 +43,12 @@ enum MainTab: Hashable {
             return "house.fill"
         case .explore:
             return "sparkles"
-        case .map:
-            return "map.fill"
+        case .planner:
+            return "wand.and.stars.inverse"
         case .favorites:
             return "heart.fill"
         case .profile:
             return "person.fill"
         }
     }
-}//
-//  MainTab.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}
