@@ -17,13 +17,19 @@ struct RootView: View {
             case .splash:
                 SplashView {
                     withAnimation {
-                        launchState = appState.hasSeenOnboarding ? .citySelection : .onboarding
+                        if !appState.hasSeenOnboarding {
+                            launchState = .onboarding
+                        } else if appState.selectedCityId == nil {
+                            launchState = .citySelection
+                        } else {
+                            launchState = .main
+                        }
                     }
                 }
 
             case .onboarding:
                 OnboardingView {
-                    appState.hasSeenOnboarding = true
+                    appState.completeOnboarding()
                     withAnimation {
                         launchState = .citySelection
                     }

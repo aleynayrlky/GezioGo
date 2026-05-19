@@ -1,10 +1,3 @@
-//
-//  CitySelectionViewModel.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
 import Foundation
 import Combine
 
