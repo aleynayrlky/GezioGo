@@ -3,8 +3,15 @@ import SwiftUI
 struct RouteDetailView: View {
     @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: RouteDetailViewModel
+    @State private var showLoginRequiredAlert = false
 
-    init(route: TripRoute) {
+    let authStatus: AppState.AuthStatus
+
+    init(
+        route: TripRoute,
+        authStatus: AppState.AuthStatus = .authenticated
+    ) {
+        self.authStatus = authStatus
         _viewModel = StateObject(
             wrappedValue: RouteDetailViewModel(route: route)
         )
@@ -50,12 +57,18 @@ struct RouteDetailView: View {
                 .accessibilityLabel("Rotayı paylaş")
 
                 Button {
+                    guard authStatus == .authenticated else {
+                        showLoginRequiredAlert = true
+                        return
+                    }
+
                     withAnimation {
                         viewModel.toggleSaved()
                     }
                 } label: {
                     Image(systemName: viewModel.isSaved ? "bookmark.fill" : "bookmark")
                         .foregroundStyle(viewModel.isSaved ? AppColors.gold : AppColors.petrol)
+                        .opacity(authStatus == .authenticated ? 1 : 0.55)
                 }
                 .accessibilityLabel(viewModel.isSaved ? "Rotayı kayıttan çıkar" : "Rotayı kaydet")
             }
@@ -66,6 +79,11 @@ struct RouteDetailView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .savedRoutesDidChange)) { _ in
             viewModel.refreshSavedState()
+        }
+        .alert("Giriş yapmalısın", isPresented: $showLoginRequiredAlert) {
+            Button("Tamam", role: .cancel) { }
+        } message: {
+            Text("Rota kaydetmek için giriş yapman veya üye olman gerekiyor.")
         }
     }
 

@@ -25,10 +25,11 @@ final class MockDataService: DataServiceProtocol {
             $0.userId == userId
         }
     }
-}//
-//  MockDataService.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
 
+    func fetchRoutes(cityId: String) async throws -> [TripRoute] {
+        let routes = try JSONLoader.load("MockRoutes", as: [TripRoute].self)
+        return routes.filter {
+            $0.cityId == cityId
+        }
+    }
+}

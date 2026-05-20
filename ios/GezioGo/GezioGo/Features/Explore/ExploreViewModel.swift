@@ -1,102 +1,182 @@
 import Foundation
 import Combine
 
+struct ExploreDiscoveryCategory: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let iconName: String
+    let category: PlaceCategory?
+}
+
+struct ExploreRecommendationItem: Identifiable, Hashable {
+    let id: String
+    let title: String
+    let cityName: String
+    let categoryTitle: String
+    let iconName: String
+    let ratingText: String
+}
+
 @MainActor
 final class ExploreViewModel: ObservableObject {
-    @Published var places: [Place] = []
-    @Published var selectedCategory: PlaceCategory?
     @Published var searchText: String = ""
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    @Published var selectedCategoryId: String? = nil
 
     private let cityId: String
-    private let dataService: DataServiceProtocol
 
-    init(
-        cityId: String,
-        dataService: DataServiceProtocol? = nil
-    ) {
+    init(cityId: String) {
         self.cityId = cityId
-        self.dataService = dataService ?? MockDataService()
     }
 
-    var categories: [PlaceCategory] {
-        [.historical, .museum, .nature, .foodDrink, .family, .hiddenGem]
+    var discoveryCategories: [ExploreDiscoveryCategory] {
+        [
+            ExploreDiscoveryCategory(
+                id: "museum",
+                title: "Müzeler",
+                subtitle: "Türkiye’den kültür durakları",
+                iconName: "building.columns.fill",
+                category: .museum
+            ),
+            ExploreDiscoveryCategory(
+                id: "historical",
+                title: "Tarihi Yerler",
+                subtitle: "Geçmişin izlerini keşfet",
+                iconName: "castle.fill",
+                category: .historical
+            ),
+            ExploreDiscoveryCategory(
+                id: "nature",
+                title: "Doğa & Parklar",
+                subtitle: "Yeşil rotalar ve açık alanlar",
+                iconName: "leaf.fill",
+                category: .nature
+            ),
+            ExploreDiscoveryCategory(
+                id: "food",
+                title: "Yeme & İçme",
+                subtitle: "Lezzet durakları",
+                iconName: "fork.knife",
+                category: .foodDrink
+            ),
+            ExploreDiscoveryCategory(
+                id: "scenic",
+                title: "Manzaralı Noktalar",
+                subtitle: "Fotoğraflık keşif alanları",
+                iconName: "camera.fill",
+                category: nil
+            ),
+            ExploreDiscoveryCategory(
+                id: "popular",
+                title: "Popüler Noktalar",
+                subtitle: "En çok ilgi gören yerler",
+                iconName: "star.fill",
+                category: nil
+            )
+        ]
     }
 
-    var filteredPlaces: [Place] {
-        var result = places
+    var recommendations: [ExploreRecommendationItem] {
+        [
+            ExploreRecommendationItem(
+                id: "istanbul-galata",
+                title: "Galata Kulesi",
+                cityName: "İstanbul",
+                categoryTitle: "Tarihi",
+                iconName: "castle.fill",
+                ratingText: "4.8"
+            ),
+            ExploreRecommendationItem(
+                id: "bolu-yedigoller",
+                title: "Yedigöller",
+                cityName: "Bolu",
+                categoryTitle: "Doğa",
+                iconName: "leaf.fill",
+                ratingText: "4.9"
+            ),
+            ExploreRecommendationItem(
+                id: "gaziantep-baklava",
+                title: "Gastronomi Rotası",
+                cityName: "Gaziantep",
+                categoryTitle: "Yeme & İçme",
+                iconName: "fork.knife",
+                ratingText: "4.9"
+            ),
+            ExploreRecommendationItem(
+                id: "mardin-sokaklari",
+                title: "Mardin Sokakları",
+                cityName: "Mardin",
+                categoryTitle: "Tarihi",
+                iconName: "building.2.fill",
+                ratingText: "4.8"
+            )
+        ]
+    }
 
-        if let selectedCategory {
-            result = result.filter { $0.category == selectedCategory }
+    var filteredDiscoveryCategories: [ExploreDiscoveryCategory] {
+        var result = discoveryCategories
+
+        if let selectedCategoryId {
+            result = result.filter { $0.id == selectedCategoryId }
         }
 
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).localizedLowercase
 
         guard !query.isEmpty else {
             return result
         }
 
-        return result.filter { place in
-            placeMatchesSearch(place, query: query)
+        return result.filter { item in
+            let searchableText = [
+                item.title,
+                item.subtitle,
+                item.category?.displayName ?? ""
+            ]
+            .joined(separator: " ")
+            .localizedLowercase
+
+            return searchableText.contains(query)
         }
+    }
+
+    var filteredRecommendations: [ExploreRecommendationItem] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).localizedLowercase
+
+        guard !query.isEmpty else {
+            return recommendations
+        }
+
+        return recommendations.filter { item in
+            let searchableText = [
+                item.title,
+                item.cityName,
+                item.categoryTitle
+            ]
+            .joined(separator: " ")
+            .localizedLowercase
+
+            return searchableText.contains(query)
+        }
+    }
+
+    var hasActiveSearch: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var hasActiveFilter: Bool {
+        selectedCategoryId != nil
     }
 
     var hasActiveFilters: Bool {
-        selectedCategory != nil || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        hasActiveSearch || hasActiveFilter
     }
 
-    var emptyStateTitle: String {
-        hasActiveFilters ? "Sonuç bulunamadı" : "Mekan bulunamadı"
-    }
-
-    var emptyStateMessage: String {
-        if hasActiveFilters {
-            return "Aramana veya seçtiğin kategoriye uygun mekan bulunamadı. Farklı bir kelime ya da kategori deneyebilirsin."
-        } else {
-            return "Bu şehir için henüz mekan eklenmemiş."
-        }
-    }
-
-    func loadPlaces() async {
-        isLoading = true
-        errorMessage = nil
-
-        do {
-            places = try await dataService.fetchPlaces(cityId: cityId)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-
-        isLoading = false
-    }
-
-    func selectCategory(_ category: PlaceCategory?) {
-        selectedCategory = category
+    func selectCategory(_ categoryId: String?) {
+        selectedCategoryId = categoryId
     }
 
     func clearFilters() {
-        selectedCategory = nil
+        selectedCategoryId = nil
         searchText = ""
-    }
-
-    private func placeMatchesSearch(_ place: Place, query: String) -> Bool {
-        let normalizedQuery = query.localizedLowercase
-
-        let searchableText = [
-            place.name,
-            place.district,
-            place.address,
-            place.shortDescription,
-            place.longDescription ?? "",
-            place.category.displayName,
-            place.subCategory ?? "",
-            place.priceType.displayName,
-            place.tags.joined(separator: " ")
-        ]
-        .joined(separator: " ")
-        .localizedLowercase
-
-        return searchableText.contains(normalizedQuery)
     }
 }

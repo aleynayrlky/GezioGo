@@ -1,65 +1,32 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @State private var fullName = "Gezgin"
+    @State private var email = ""
+    @State private var phone = ""
+
+    @State private var budgetPreference = "Henüz seçilmedi"
+    @State private var interestPreference = "Doğa, Tarih, Gastronomi"
+    @State private var transportPreference = "Karma"
+
     var body: some View {
         ZStack {
             AppColors.background
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                VStack(alignment: .leading, spacing: AppSpacing.md) {
                     headerView
 
-                    AppCard {
-                        VStack(spacing: AppSpacing.md) {
-                            settingsRow(
-                                iconName: "bell",
-                                title: "Bildirimler",
-                                value: "Yakında"
-                            )
+                    personalInfoSection
 
-                            Divider()
+                    preferencesSection
 
-                            settingsRow(
-                                iconName: "globe",
-                                title: "Dil",
-                                value: "Türkçe"
-                            )
-
-                            Divider()
-
-                            settingsRow(
-                                iconName: "moon",
-                                title: "Tema",
-                                value: "Sistem varsayılanı"
-                            )
-
-                            Divider()
-
-                            settingsRow(
-                                iconName: "lock.shield",
-                                title: "Gizlilik",
-                                value: "Yakında"
-                            )
-                        }
-                    }
-
-                    AppCard {
-                        VStack(alignment: .leading, spacing: AppSpacing.md) {
-                            Text("Hesap sistemi")
-                                .font(AppTypography.subtitle)
-                                .foregroundStyle(AppColors.textPrimary)
-
-                            Text("Kullanıcı hesabı, giriş/çıkış ve kişisel tercihler sonraki sürümlerde eklenecek.")
-                                .font(AppTypography.body)
-                                .foregroundStyle(AppColors.textSecondary)
-                                .lineSpacing(4)
-
-                            AppTag("GezioGo 1.2 hedefi", iconName: "person.crop.circle")
-                        }
-                    }
+                    appSettingsSection
                 }
-                .padding(AppSpacing.lg)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.top, AppSpacing.md)
+                .padding(.bottom, AppSpacing.xl)
             }
         }
         .navigationTitle("Ayarlar")
@@ -67,18 +34,162 @@ struct SettingsView: View {
     }
 
     private var headerView: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+        VStack(alignment: .leading, spacing: 5) {
             AppTag("Ayarlar", iconName: "gearshape")
 
-            Text("Uygulama ayarları")
-                .font(AppTypography.title)
+            Text("Profil ayarları")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("Bildirimler, dil, görünüm ve hesap ayarları burada yönetilecek.")
-                .font(AppTypography.body)
+            Text("Kişisel bilgilerini ve uygulama tercihlerini buradan düzenleyebilirsin.")
+                .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(AppColors.textSecondary)
-                .lineSpacing(4)
+                .lineSpacing(3)
         }
+    }
+
+    private var personalInfoSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            sectionTitle("Kişisel Bilgiler")
+
+            AppCard {
+                VStack(spacing: 0) {
+                    editableRow(
+                        iconName: "person.fill",
+                        title: "Ad Soyad",
+                        placeholder: "Adını yaz",
+                        text: $fullName
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    editableRow(
+                        iconName: "envelope.fill",
+                        title: "E-posta",
+                        placeholder: "E-posta adresi",
+                        text: $email
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    editableRow(
+                        iconName: "phone.fill",
+                        title: "Telefon",
+                        placeholder: "Telefon numarası",
+                        text: $phone
+                    )
+                }
+            }
+        }
+    }
+
+    private var preferencesSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            sectionTitle("Tercihler")
+
+            AppCard {
+                VStack(spacing: 0) {
+                    settingsRow(
+                        iconName: "wallet.pass.fill",
+                        title: "Bütçe Tercihi",
+                        value: budgetPreference
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    settingsRow(
+                        iconName: "heart.fill",
+                        title: "İlgi Alanları",
+                        value: interestPreference
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    settingsRow(
+                        iconName: "car.fill",
+                        title: "Ulaşım Tercihi",
+                        value: transportPreference
+                    )
+                }
+            }
+        }
+    }
+
+    private var appSettingsSection: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            sectionTitle("Uygulama")
+
+            AppCard {
+                VStack(spacing: 0) {
+                    settingsRow(
+                        iconName: "bell.fill",
+                        title: "Bildirimler",
+                        value: "Profil ekranından yönetiliyor"
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    settingsRow(
+                        iconName: "globe",
+                        title: "Dil",
+                        value: "Türkçe"
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    settingsRow(
+                        iconName: "moon.fill",
+                        title: "Tema",
+                        value: "Sistem varsayılanı"
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    settingsRow(
+                        iconName: "lock.shield.fill",
+                        title: "Gizlilik",
+                        value: "Yakında"
+                    )
+                }
+            }
+        }
+    }
+
+    private func sectionTitle(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 17, weight: .bold, design: .rounded))
+            .foregroundStyle(AppColors.textPrimary)
+            .padding(.leading, 2)
+    }
+
+    private func editableRow(
+        iconName: String,
+        title: String,
+        placeholder: String,
+        text: Binding<String>
+    ) -> some View {
+        HStack(spacing: AppSpacing.sm) {
+            iconCircle(iconName)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 12.5, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.textPrimary)
+
+                TextField(placeholder, text: text)
+                    .font(.system(size: 12.5, weight: .regular))
+                    .foregroundStyle(AppColors.textSecondary)
+                    .textInputAutocapitalization(.words)
+            }
+        }
+        .padding(.vertical, 10)
     }
 
     private func settingsRow(
@@ -86,28 +197,36 @@ struct SettingsView: View {
         title: String,
         value: String
     ) -> some View {
-        HStack(spacing: AppSpacing.md) {
-            ZStack {
-                RoundedRectangle(cornerRadius: AppRadius.medium)
-                    .fill(AppColors.cream)
-                    .frame(width: 44, height: 44)
+        HStack(spacing: AppSpacing.sm) {
+            iconCircle(iconName)
 
-                Image(systemName: iconName)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(AppColors.petrol)
-            }
-
-            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                Text(title)
-                    .font(AppTypography.bodyMedium)
-                    .foregroundStyle(AppColors.textPrimary)
-
-                Text(value)
-                    .font(AppTypography.caption)
-                    .foregroundStyle(AppColors.textSecondary)
-            }
+            Text(title)
+                .font(.system(size: 12.5, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.textPrimary)
 
             Spacer()
+
+            Text(value)
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(AppColors.textSecondary)
+                .lineLimit(1)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(AppColors.textSecondary)
+        }
+        .padding(.vertical, 10)
+    }
+
+    private func iconCircle(_ iconName: String) -> some View {
+        ZStack {
+            Circle()
+                .fill(AppColors.cream)
+                .frame(width: 38, height: 38)
+
+            Image(systemName: iconName)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(AppColors.petrol)
         }
     }
 }
@@ -116,10 +235,4 @@ struct SettingsView: View {
     NavigationStack {
         SettingsView()
     }
-}//
-//  SettingsView.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}

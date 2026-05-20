@@ -2,10 +2,17 @@ import SwiftUI
 
 struct PlaceDetailView: View {
     @StateObject private var viewModel: PlaceDetailViewModel
-    
+    @State private var showLoginRequiredAlert = false
+
+    let authStatus: AppState.AuthStatus
+
     private let mapService = MapService()
 
-    init(place: Place) {
+    init(
+        place: Place,
+        authStatus: AppState.AuthStatus = .authenticated
+    ) {
+        self.authStatus = authStatus
         _viewModel = StateObject(
             wrappedValue: PlaceDetailViewModel(place: place)
         )
@@ -36,13 +43,24 @@ struct PlaceDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    guard authStatus == .authenticated else {
+                        showLoginRequiredAlert = true
+                        return
+                    }
+
                     viewModel.toggleFavorite()
                 } label: {
                     Image(systemName: viewModel.favoriteButtonIcon)
                         .foregroundStyle(viewModel.isFavorite ? AppColors.gold : AppColors.petrol)
+                        .opacity(authStatus == .authenticated ? 1 : 0.55)
                 }
                 .accessibilityLabel(viewModel.favoriteButtonTitle)
             }
+        }
+        .alert("Giriş yapmalısın", isPresented: $showLoginRequiredAlert) {
+            Button("Tamam", role: .cancel) { }
+        } message: {
+            Text("Favorilere eklemek için giriş yapman veya üye olman gerekiyor.")
         }
     }
 
@@ -160,6 +178,11 @@ struct PlaceDetailView: View {
                     if viewModel.isFavorite {
                         AppTag("Favorilerde", iconName: "heart.fill")
                     }
+
+                    if authStatus != .authenticated {
+                        AppTag("Giriş yapınca favorilere eklenebilir", iconName: "lock.fill")
+                    }
+
                     AppTag(viewModel.childFriendlyText, iconName: "figure.and.child.holdinghands")
                     AppTag(viewModel.studentFriendlyText, iconName: "graduationcap")
                     AppTag(viewModel.accessibilityText, iconName: "accessibility")
@@ -223,13 +246,8 @@ struct PlaceDetailView: View {
                 lastVerifiedAt: nil,
                 createdAt: "",
                 updatedAt: ""
-            )
+            ),
+            authStatus: .authenticated
         )
     }
-}//
-//  PlaceDetailView.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}

@@ -6,6 +6,7 @@ final class HomeViewModel: ObservableObject {
     @Published var city: City?
     @Published var places: [Place] = []
     @Published var events: [Event] = []
+    @Published var routes: [TripRoute] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -20,6 +21,41 @@ final class HomeViewModel: ObservableObject {
         self.dataService = dataService
     }
 
+    var cityName: String {
+        city?.name ?? cityId.capitalized
+    }
+
+    var greetingTitle: String {
+        "Merhaba, Gezgin!"
+    }
+
+    var greetingSubtitle: String {
+        "Bugün \(cityName)’da nereyi keşfetmek istersin?"
+    }
+
+    var featuredPlaces: [Place] {
+        Array(places.prefix(6))
+    }
+
+    var recommendedPlaces: [Place] {
+        Array(places.prefix(5))
+    }
+
+    var featuredEvents: [Event] {
+        Array(events.prefix(2))
+    }
+    
+    var dailyFeaturedPlace: Place? {
+        guard !places.isEmpty else {
+            return nil
+        }
+
+        let day = Calendar.current.ordinality(of: .day, in: .era, for: Date()) ?? 0
+        let index = day % places.count
+
+        return places[index]
+    }
+
     func loadHomeData() async {
         isLoading = true
         errorMessage = nil
@@ -29,16 +65,11 @@ final class HomeViewModel: ObservableObject {
             city = cities.first { $0.id == cityId }
             places = try await dataService.fetchPlaces(cityId: cityId)
             events = try await dataService.fetchEvents(cityId: cityId)
+            routes = try await dataService.fetchRoutes(cityId: cityId)
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isLoading = false
     }
-}//
-//  HomeViewModel.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}

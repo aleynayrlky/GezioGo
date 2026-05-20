@@ -3,6 +3,8 @@ import UIKit
 
 struct MainTabBarView: View {
     let cityId: String
+    let authStatus: AppState.AuthStatus
+    let userDisplayName: String?
     var onChangeCity: (() -> Void)? = nil
 
     @State private var selectedTab: MainTab = .home
@@ -16,10 +18,13 @@ struct MainTabBarView: View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
                 NavigationStack(path: $homePath) {
-                    HomeView(cityId: cityId)
-                        .navigationDestination(for: AppRoute.self) { route in
-                            destination(for: route)
-                        }
+                    HomeView(
+                        cityId: cityId,
+                        userDisplayName: userDisplayName
+                    )
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destination(for: route)
+                    }
                 }
                 .environment(\.navigate) { route in
                     homePath.append(route)
@@ -38,7 +43,7 @@ struct MainTabBarView: View {
                 .tag(MainTab.explore)
 
                 NavigationStack(path: $plannerPath) {
-                    AIPlannerPlaceholderView(cityId: cityId)
+                    AIPlannerView(cityId: cityId)
                         .navigationDestination(for: AppRoute.self) { route in
                             destination(for: route)
                         }
@@ -68,19 +73,16 @@ struct MainTabBarView: View {
                 .tag(MainTab.profile)
             }
             .toolbar(.hidden, for: .tabBar)
-            .onAppear {
-                UITabBar.appearance().isHidden = true
-            }
-            .onDisappear {
-                UITabBar.appearance().isHidden = false
-            }
             .safeAreaInset(edge: .bottom) {
                 Color.clear
                     .frame(height: 56)
             }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
 
             customTabBar
+                .ignoresSafeArea(.keyboard, edges: .bottom)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
             UITabBar.appearance().isHidden = true
             configureTabBarAppearance()
@@ -93,13 +95,9 @@ struct MainTabBarView: View {
     private var customTabBar: some View {
         HStack(alignment: .center, spacing: 0) {
             tabBarItem(.home)
-
             tabBarItem(.explore)
-
             plannerTabButton
-
             tabBarItem(.favorites)
-
             tabBarItem(.profile)
         }
         .frame(height: 58)
@@ -193,7 +191,10 @@ struct MainTabBarView: View {
             PlaceListView(cityId: cityId, category: category)
 
         case .placeDetail(let place):
-            PlaceDetailView(place: place)
+            PlaceDetailView(
+                place: place,
+                authStatus: authStatus
+            )
 
         case .events(let cityId):
             EventsView(cityId: cityId)
@@ -205,7 +206,32 @@ struct MainTabBarView: View {
             RoutesView(cityId: cityId)
 
         case .routeDetail(let route):
-            RouteDetailView(route: route)
+            RouteDetailView(
+                route: route,
+                authStatus: authStatus
+            )
+            
+        case .notifications:
+            NotificationsView()
+            
+        case .accommodation(let cityId):
+            CityFeatureComingSoonView(
+                cityId: cityId,
+                title: "Konaklama",
+                iconName: "bed.double.fill",
+                message: "Yakında \(cityId.capitalized) içindeki otel, pansiyon ve konaklama önerileri burada yer alacak."
+            )
+
+        case .transportation(let cityId):
+            CityFeatureComingSoonView(
+                cityId: cityId,
+                title: "Ulaşım",
+                iconName: "bus.fill",
+                message: "Yakında \(cityId.capitalized) şehir içi ulaşım bilgileri, duraklar ve pratik ulaşım önerileri burada yer alacak."
+            )
+            
+        case .mapExplore(let cityId):
+            MapExploreView(cityId: cityId)
         }
     }
 
@@ -219,73 +245,10 @@ struct MainTabBarView: View {
     }
 }
 
-private struct AIPlannerPlaceholderView: View {
-    let cityId: String
-
-    var body: some View {
-        ZStack {
-            AppColors.background
-                .ignoresSafeArea()
-
-            VStack(spacing: AppSpacing.lg) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    AppColors.teal,
-                                    AppColors.petrol
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 76, height: 76)
-                        .shadow(color: AppColors.teal.opacity(0.28), radius: 14, x: 0, y: 8)
-
-                    Image("gezioGoLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 54, height: 54)
-                        .clipShape(Circle())
-                }
-
-                VStack(spacing: AppSpacing.sm) {
-                    Text("Planla")
-                        .font(AppTypography.title)
-                        .foregroundStyle(AppColors.textPrimary)
-
-                    Text("Yapay zekâ ile sana özel gezi rotanı oluşturacağın alan burada olacak.")
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-
-                    Text("Başlangıçta seçili şehir: \(cityId.capitalized)")
-                        .font(AppTypography.captionMedium)
-                        .foregroundStyle(AppColors.teal)
-                        .padding(.horizontal, AppSpacing.md)
-                        .padding(.vertical, AppSpacing.sm)
-                        .background(AppColors.cream)
-                        .clipShape(Capsule())
-
-                    Text("Planla ekranında şehir alanı ayrıca seçilebilecek. Yani ana sayfa Samsun’u gösterirken burada başka şehir için rota oluşturabileceksin.")
-                        .font(AppTypography.caption)
-                        .foregroundStyle(AppColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, AppSpacing.lg)
-                }
-
-                AppTag("AI rota oluşturma yakında", iconName: "sparkles")
-            }
-            .padding(AppSpacing.lg)
-        }
-        .navigationTitle("Planla")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
 #Preview {
-    MainTabBarView(cityId: "samsun")
+    MainTabBarView(
+        cityId: "samsun",
+        authStatus: .authenticated,
+        userDisplayName: "Aleyna"
+    )
 }
