@@ -14,38 +14,41 @@ struct SplashView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: geometry.size.width)
-                    .frame(maxHeight: .infinity, alignment: .center)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
 
-                VStack {
-                    Spacer()
-
-                    Button {
-                        onFinish()
-                    } label: {
-                        Color.black.opacity(0.001)
-                    }
-                    .frame(
-                        width: geometry.size.width * 0.78,
-                        height: 76
-                    )
-                    .contentShape(RoundedRectangle(cornerRadius: 28))
-                    .padding(.bottom, 22)
-
-                    Button {
-                        onAuthTap?()
-                    } label: {
-                        Color.black.opacity(0.001)
-                    }
-                    .frame(
-                        width: geometry.size.width * 0.70,
-                        height: 58
-                    )
-                    .contentShape(Rectangle())
-                    .padding(.bottom, 36)
+                Button {
+                    onFinish()
+                } label: {
+                    Color.black.opacity(0.001)
                 }
-                .zIndex(2)
+                .frame(
+                    width: geometry.size.width * 0.78,
+                    height: 68
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 28))
+                .position(
+                    x: geometry.size.width / 2,
+                    y: geometry.size.height * 0.807
+                )
+                .buttonStyle(.plain)
+
+                Button {
+                    onAuthTap?()
+                } label: {
+                    Color.black.opacity(0.001)
+                }
+                .frame(
+                    width: geometry.size.width * 0.70,
+                    height: 54
+                )
+                .contentShape(Rectangle())
+                .position(
+                    x: geometry.size.width / 2,
+                    y: geometry.size.height * 0.895
+                )
+                .buttonStyle(.plain)
             }
         }
     }

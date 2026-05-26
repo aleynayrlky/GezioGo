@@ -6,6 +6,7 @@ struct MainTabBarView: View {
     let authStatus: AppState.AuthStatus
     let userDisplayName: String?
     var onChangeCity: (() -> Void)? = nil
+    var onLogout: (() -> Void)? = nil
 
     @State private var selectedTab: MainTab = .home
     @State private var homePath: [AppRoute] = []
@@ -67,8 +68,17 @@ struct MainTabBarView: View {
                 NavigationStack(path: $profilePath) {
                     ProfileView(
                         cityId: cityId,
-                        onChangeCity: onChangeCity
+                        authStatus: authStatus,
+                        userDisplayName: userDisplayName,
+                        onChangeCity: onChangeCity,
+                        onLogout: onLogout
                     )
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destination(for: route)
+                    }
+                }
+                .environment(\.navigate) { route in
+                    profilePath.append(route)
                 }
                 .tag(MainTab.profile)
             }
@@ -178,6 +188,26 @@ struct MainTabBarView: View {
 
         withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
             selectedTab = tab
+            resetNavigation(for: tab)
+        }
+    }
+
+    private func resetNavigation(for tab: MainTab) {
+        switch tab {
+        case .home:
+            homePath.removeAll()
+
+        case .explore:
+            explorePath.removeAll()
+
+        case .planner:
+            plannerPath.removeAll()
+
+        case .favorites:
+            favoritesPath.removeAll()
+
+        case .profile:
+            profilePath.removeAll()
         }
     }
 
@@ -210,26 +240,19 @@ struct MainTabBarView: View {
                 route: route,
                 authStatus: authStatus
             )
-            
+
         case .notifications:
             NotificationsView()
-            
+
         case .accommodation(let cityId):
-            CityFeatureComingSoonView(
+            AccommodationView(
                 cityId: cityId,
-                title: "Konaklama",
-                iconName: "bed.double.fill",
-                message: "Yakında \(cityId.capitalized) içindeki otel, pansiyon ve konaklama önerileri burada yer alacak."
+                authStatus: authStatus
             )
 
         case .transportation(let cityId):
-            CityFeatureComingSoonView(
-                cityId: cityId,
-                title: "Ulaşım",
-                iconName: "bus.fill",
-                message: "Yakında \(cityId.capitalized) şehir içi ulaşım bilgileri, duraklar ve pratik ulaşım önerileri burada yer alacak."
-            )
-            
+            TransportationView(cityId: cityId)
+
         case .mapExplore(let cityId):
             MapExploreView(cityId: cityId)
         }
@@ -249,6 +272,7 @@ struct MainTabBarView: View {
     MainTabBarView(
         cityId: "samsun",
         authStatus: .authenticated,
-        userDisplayName: "Aleyna"
+        userDisplayName: "Aleyna Yerlikaya",
+        onLogout: {}
     )
 }

@@ -2,7 +2,10 @@ import SwiftUI
 
 struct ProfileView: View {
     let cityId: String
+    let authStatus: AppState.AuthStatus
+    let userDisplayName: String?
     var onChangeCity: (() -> Void)? = nil
+    var onLogout: (() -> Void)? = nil
 
     @Environment(\.navigate) private var navigate
 
@@ -39,10 +42,14 @@ struct ProfileView: View {
         }
         .navigationTitle("Profil")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Çıkış yapma işlemi yakında", isPresented: $showLogoutAlert) {
-            Button("Tamam", role: .cancel) { }
+        .alert("Çıkış yapılsın mı?", isPresented: $showLogoutAlert) {
+            Button("Vazgeç", role: .cancel) { }
+
+            Button("Çıkış Yap", role: .destructive) {
+                onLogout?()
+            }
         } message: {
-            Text("Firebase giriş sistemi bağlandığında çıkış yapma işlemi aktif olacak.")
+            Text("Hesabından çıkış yapınca uygulamayı misafir olarak kullanmaya devam edebilirsin.")
         }
     }
 
@@ -68,7 +75,7 @@ struct ProfileView: View {
             Spacer()
 
             NavigationLink {
-                SettingsView()
+                SettingsView(userDisplayName: userDisplayName)
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 15, weight: .semibold))
@@ -123,15 +130,15 @@ struct ProfileView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Gezgin")
+                        Text(displayName)
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                             .foregroundStyle(AppColors.textPrimary)
 
-                        Text("Gezgin ruhlu kaşif")
+                        Text(authStatus == .authenticated ? "Gezgin ruhlu kaşif" : "Misafir kullanıcı")
                             .font(.system(size: 11, weight: .regular))
                             .foregroundStyle(AppColors.textSecondary)
 
-                        Text("Beta kullanıcı")
+                        Text(authStatus == .authenticated ? "Beta kullanıcı" : "Misafir")
                             .font(.system(size: 9, weight: .semibold))
                             .foregroundStyle(AppColors.petrol)
                             .padding(.horizontal, 8)
@@ -310,26 +317,32 @@ struct ProfileView: View {
 
     private var logoutButton: some View {
         Button {
-            showLogoutAlert = true
+            if authStatus == .authenticated {
+                showLogoutAlert = true
+            }
         } label: {
             HStack(spacing: AppSpacing.xs) {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
+                Image(systemName: authStatus == .authenticated ? "rectangle.portrait.and.arrow.right" : "person.crop.circle")
                     .font(.system(size: 14, weight: .semibold))
 
-                Text("Çıkış Yap")
+                Text(authStatus == .authenticated ? "Çıkış Yap" : "Misafir Kullanıcı")
                     .font(.system(size: 13, weight: .semibold))
             }
-            .foregroundStyle(AppColors.gold)
+            .foregroundStyle(authStatus == .authenticated ? AppColors.gold : AppColors.textSecondary)
             .frame(maxWidth: .infinity)
             .frame(height: 40)
             .background(AppColors.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: 15))
             .overlay(
                 RoundedRectangle(cornerRadius: 15)
-                    .stroke(AppColors.gold.opacity(0.75), lineWidth: 1)
+                    .stroke(
+                        authStatus == .authenticated ? AppColors.gold.opacity(0.75) : AppColors.textSecondary.opacity(0.25),
+                        lineWidth: 1
+                    )
             )
         }
         .buttonStyle(.plain)
+        .disabled(authStatus != .authenticated)
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -442,6 +455,11 @@ struct ProfileView: View {
             .shadow(color: .black.opacity(0.045), radius: 8, x: 0, y: 4)
     }
 
+    private var displayName: String {
+        let cleanedName = userDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return cleanedName.isEmpty ? "Gezgin" : cleanedName
+    }
+
     private var cityDisplayName: String {
         switch cityId.lowercased() {
         case "samsun":
@@ -454,6 +472,11 @@ struct ProfileView: View {
 
 #Preview {
     NavigationStack {
-        ProfileView(cityId: "samsun")
+        ProfileView(
+            cityId: "samsun",
+            authStatus: .authenticated,
+            userDisplayName: "Aleyna Yerlikaya",
+            onLogout: {}
+        )
     }
 }

@@ -11,13 +11,16 @@ final class HomeViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let cityId: String
+    private let userDisplayName: String?
     private let dataService: DataServiceProtocol
 
     init(
         cityId: String,
+        userDisplayName: String? = nil,
         dataService: DataServiceProtocol = MockDataService()
     ) {
         self.cityId = cityId
+        self.userDisplayName = userDisplayName
         self.dataService = dataService
     }
 
@@ -26,7 +29,13 @@ final class HomeViewModel: ObservableObject {
     }
 
     var greetingTitle: String {
-        "Merhaba, Gezgin!"
+        let cleanedName = userDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        if cleanedName.isEmpty {
+            return "Merhaba, Gezgin!"
+        }
+
+        return "Merhaba, \(cleanedName)!"
     }
 
     var greetingSubtitle: String {
@@ -44,7 +53,7 @@ final class HomeViewModel: ObservableObject {
     var featuredEvents: [Event] {
         Array(events.prefix(2))
     }
-    
+
     var dailyFeaturedPlace: Place? {
         guard !places.isEmpty else {
             return nil

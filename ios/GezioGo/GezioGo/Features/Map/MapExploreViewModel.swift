@@ -6,6 +6,7 @@ import MapKit
 final class MapExploreViewModel: ObservableObject {
     @Published var places: [Place] = []
     @Published var selectedPlace: Place?
+    @Published var selectedCategory: PlaceCategory?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -31,8 +32,21 @@ final class MapExploreViewModel: ObservableObject {
         self.dataService = dataService ?? MockDataService()
     }
 
+    var categories: [PlaceCategory] {
+        Array(Set(places.map { $0.category }))
+            .sorted { $0.displayName < $1.displayName }
+    }
+
     var visiblePlaces: [Place] {
-        places
+        if let selectedCategory {
+            return places.filter { $0.category == selectedCategory }
+        }
+
+        return places
+    }
+
+    var selectedCategoryTitle: String {
+        selectedCategory?.displayName ?? "Tüm mekanlar"
     }
 
     func loadPlaces() async {
@@ -41,7 +55,12 @@ final class MapExploreViewModel: ObservableObject {
 
         do {
             places = try await dataService.fetchPlaces(cityId: cityId)
-            selectedPlace = places.first
+
+            selectedPlace = visiblePlaces.first
+
+            if let firstPlace = selectedPlace {
+                moveRegion(to: firstPlace)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -49,9 +68,21 @@ final class MapExploreViewModel: ObservableObject {
         isLoading = false
     }
 
+    func selectCategory(_ category: PlaceCategory?) {
+        selectedCategory = category
+        selectedPlace = visiblePlaces.first
+
+        if let selectedPlace {
+            moveRegion(to: selectedPlace)
+        }
+    }
+
     func selectPlace(_ place: Place) {
         selectedPlace = place
+        moveRegion(to: place)
+    }
 
+    private func moveRegion(to place: Place) {
         region.center = CLLocationCoordinate2D(
             latitude: place.latitude,
             longitude: place.longitude

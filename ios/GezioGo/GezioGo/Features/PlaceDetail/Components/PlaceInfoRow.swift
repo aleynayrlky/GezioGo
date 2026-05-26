@@ -6,30 +6,32 @@ struct PlaceInfoRow: View {
     let value: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: AppSpacing.md) {
+        HStack(alignment: .top, spacing: AppSpacing.sm) {
             ZStack {
-                RoundedRectangle(cornerRadius: AppRadius.medium)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(AppColors.cream)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 34, height: 34)
 
                 Image(systemName: iconName)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(AppColors.petrol)
             }
 
-            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(AppTypography.captionMedium)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.teal)
 
                 Text(value)
-                    .font(AppTypography.body)
+                    .font(.system(size: 13, weight: .regular))
                     .foregroundStyle(AppColors.textPrimary)
                     .multilineTextAlignment(.leading)
+                    .lineSpacing(2)
             }
 
             Spacer()
         }
+        .padding(.vertical, 8)
     }
 }
 
@@ -41,10 +43,4 @@ struct PlaceInfoRow: View {
     )
     .padding()
     .background(AppColors.background)
-}//
-//  PlaceInfoRow.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}

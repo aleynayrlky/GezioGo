@@ -1,14 +1,12 @@
-//
-//  GezioGoApp.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
 import SwiftUI
+import FirebaseCore
 
 @main
 struct GezioGoApp: App {
+    init() {
+        FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()

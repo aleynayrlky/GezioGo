@@ -1,13 +1,32 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var fullName = "Gezgin"
+    let userDisplayName: String?
+
+    @State private var firstName: String
+    @State private var lastName: String
     @State private var email = ""
     @State private var phone = ""
 
     @State private var budgetPreference = "Henüz seçilmedi"
     @State private var interestPreference = "Doğa, Tarih, Gastronomi"
     @State private var transportPreference = "Karma"
+
+    init(userDisplayName: String? = nil) {
+        self.userDisplayName = userDisplayName
+
+        let parts = (userDisplayName ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(separator: " ")
+
+        if let first = parts.first {
+            _firstName = State(initialValue: String(first))
+            _lastName = State(initialValue: parts.dropFirst().joined(separator: " "))
+        } else {
+            _firstName = State(initialValue: "")
+            _lastName = State(initialValue: "")
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -56,9 +75,21 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     editableRow(
                         iconName: "person.fill",
-                        title: "Ad Soyad",
+                        title: "Ad",
                         placeholder: "Adını yaz",
-                        text: $fullName
+                        text: $firstName,
+                        textInputAutocapitalization: .words
+                    )
+
+                    Divider()
+                        .padding(.leading, 50)
+
+                    editableRow(
+                        iconName: "person.text.rectangle.fill",
+                        title: "Soyad",
+                        placeholder: "Soyadını yaz",
+                        text: $lastName,
+                        textInputAutocapitalization: .words
                     )
 
                     Divider()
@@ -68,7 +99,8 @@ struct SettingsView: View {
                         iconName: "envelope.fill",
                         title: "E-posta",
                         placeholder: "E-posta adresi",
-                        text: $email
+                        text: $email,
+                        textInputAutocapitalization: .never
                     )
 
                     Divider()
@@ -78,7 +110,8 @@ struct SettingsView: View {
                         iconName: "phone.fill",
                         title: "Telefon",
                         placeholder: "Telefon numarası",
-                        text: $phone
+                        text: $phone,
+                        textInputAutocapitalization: .never
                     )
                 }
             }
@@ -173,7 +206,8 @@ struct SettingsView: View {
         iconName: String,
         title: String,
         placeholder: String,
-        text: Binding<String>
+        text: Binding<String>,
+        textInputAutocapitalization: TextInputAutocapitalization = .words
     ) -> some View {
         HStack(spacing: AppSpacing.sm) {
             iconCircle(iconName)
@@ -186,7 +220,8 @@ struct SettingsView: View {
                 TextField(placeholder, text: text)
                     .font(.system(size: 12.5, weight: .regular))
                     .foregroundStyle(AppColors.textSecondary)
-                    .textInputAutocapitalization(.words)
+                    .textInputAutocapitalization(textInputAutocapitalization)
+                    .autocorrectionDisabled()
             }
         }
         .padding(.vertical, 10)
@@ -233,6 +268,6 @@ struct SettingsView: View {
 
 #Preview {
     NavigationStack {
-        SettingsView()
+        SettingsView(userDisplayName: "Aleyna Yerlikaya")
     }
 }

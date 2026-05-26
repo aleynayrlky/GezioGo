@@ -5,44 +5,65 @@ struct PlaceMapPreview: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            RoundedRectangle(cornerRadius: AppRadius.large)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(
                     LinearGradient(
                         colors: [
-                            AppColors.teal.opacity(0.18),
-                            AppColors.gold.opacity(0.20)
+                            AppColors.teal.opacity(0.16),
+                            AppColors.gold.opacity(0.18)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(height: 180)
+                .frame(height: 138)
 
-            VStack(spacing: AppSpacing.sm) {
+            ZStack {
                 Image(systemName: "map.fill")
-                    .font(.system(size: 42, weight: .semibold))
-                    .foregroundStyle(AppColors.petrol)
+                    .font(.system(size: 58, weight: .semibold))
+                    .foregroundStyle(AppColors.teal.opacity(0.20))
 
-                Image(systemName: "mappin.circle.fill")
-                    .font(.system(size: 34, weight: .bold))
-                    .foregroundStyle(AppColors.gold)
+                Image("gezioGoLogoTransparent")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 62, height: 62)
+                    .clipShape(Circle())
+                    .shadow(color: AppColors.petrol.opacity(0.16), radius: 10, x: 0, y: 6)
             }
-            .frame(maxWidth: .infinity, maxHeight: 180)
+            .frame(maxWidth: .infinity, maxHeight: 138)
 
-            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("Harita önizleme")
-                    .font(AppTypography.captionMedium)
+                    .font(.system(size: 11.5, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.petrol)
 
                 Text(place.address)
-                    .font(AppTypography.caption)
+                    .font(.system(size: 10.5, weight: .regular))
                     .foregroundStyle(AppColors.textSecondary)
                     .lineLimit(2)
             }
-            .padding(AppSpacing.md)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
             .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.medium))
-            .padding(AppSpacing.md)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .padding(10)
+
+            VStack {
+                Spacer()
+
+                HStack {
+                    Spacer()
+
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(AppColors.petrol)
+                        .frame(width: 38, height: 38)
+                        .background(AppColors.cardBackground)
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                        .padding(12)
+                }
+            }
         }
     }
 }
@@ -86,10 +107,4 @@ struct PlaceMapPreview: View {
     )
     .padding()
     .background(AppColors.background)
-}//
-//  PlaceMapPreview.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
-
+}

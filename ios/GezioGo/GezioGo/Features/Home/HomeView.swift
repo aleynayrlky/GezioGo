@@ -44,7 +44,10 @@ struct HomeView: View {
         self.cityId = cityId
         self.userDisplayName = userDisplayName
         _viewModel = StateObject(
-            wrappedValue: HomeViewModel(cityId: cityId)
+            wrappedValue: HomeViewModel(
+                cityId: cityId,
+                userDisplayName: userDisplayName
+            )
         )
     }
 

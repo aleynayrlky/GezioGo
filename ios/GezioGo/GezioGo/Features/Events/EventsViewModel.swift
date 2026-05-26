@@ -1,11 +1,45 @@
 import Foundation
 import Combine
 
+enum EventQuickFilter: String, CaseIterable {
+    case all
+    case today
+    case thisWeek
+    case free
+
+    var title: String {
+        switch self {
+        case .all:
+            return "Tümü"
+        case .today:
+            return "Bugün"
+        case .thisWeek:
+            return "Bu Hafta"
+        case .free:
+            return "Ücretsiz"
+        }
+    }
+
+    var iconName: String {
+        switch self {
+        case .all:
+            return "square.grid.2x2"
+        case .today:
+            return "calendar"
+        case .thisWeek:
+            return "calendar.badge.clock"
+        case .free:
+            return "ticket"
+        }
+    }
+}
+
 @MainActor
 final class EventsViewModel: ObservableObject {
     @Published var events: [Event] = []
-    @Published var searchText: String = ""
     @Published var selectedCategory: EventCategory?
+    @Published var selectedQuickFilter: EventQuickFilter = .all
+    @Published var searchText: String = ""
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -20,12 +54,48 @@ final class EventsViewModel: ObservableObject {
         self.dataService = dataService ?? MockDataService()
     }
 
+    var quickFilters: [EventQuickFilter] {
+        EventQuickFilter.allCases
+    }
+
     var categories: [EventCategory] {
-        EventCategory.allCases
+        Array(Set(events.map { $0.category }))
+            .sorted { $0.displayName < $1.displayName }
     }
 
     var upcomingEvents: [Event] {
         var result = events
+
+        switch selectedQuickFilter {
+        case .all:
+            break
+
+        case .today:
+            result = result.filter { event in
+                guard let date = eventDate(from: event.startDate) else {
+                    return false
+                }
+
+                return Calendar.current.isDateInToday(date)
+            }
+
+        case .thisWeek:
+            result = result.filter { event in
+                guard let date = eventDate(from: event.startDate) else {
+                    return false
+                }
+
+                let today = Calendar.current.startOfDay(for: Date())
+                let nextWeek = Calendar.current.date(byAdding: .day, value: 7, to: today) ?? today
+
+                return date >= today && date <= nextWeek
+            }
+
+        case .free:
+            result = result.filter {
+                $0.priceType == .free
+            }
+        }
 
         if let selectedCategory {
             result = result.filter { $0.category == selectedCategory }
@@ -33,17 +103,38 @@ final class EventsViewModel: ObservableObject {
 
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard !query.isEmpty else {
-            return result
+        if !query.isEmpty {
+            result = result.filter { event in
+                eventMatchesSearch(event, query: query)
+            }
         }
 
-        return result.filter { event in
-            eventMatchesSearch(event, query: query)
+        return result.sorted { lhs, rhs in
+            let lhsDate = eventDate(from: lhs.startDate) ?? .distantFuture
+            let rhsDate = eventDate(from: rhs.startDate) ?? .distantFuture
+
+            return lhsDate < rhsDate
         }
     }
 
+    var featuredEvent: Event? {
+        upcomingEvents.first
+    }
+
+    var listEvents: [Event] {
+        if upcomingEvents.count <= 1 {
+            return upcomingEvents
+        }
+
+        return Array(upcomingEvents.dropFirst())
+    }
+
+    var hasActiveSearch: Bool {
+        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var hasActiveFilters: Bool {
-        selectedCategory != nil || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        selectedCategory != nil || selectedQuickFilter != .all || hasActiveSearch
     }
 
     var emptyStateTitle: String {
@@ -52,29 +143,14 @@ final class EventsViewModel: ObservableObject {
 
     var emptyStateMessage: String {
         if hasActiveFilters {
-            return "Aramana veya seçtiğin kategoriye uygun etkinlik bulunamadı. Farklı bir kelime ya da kategori deneyebilirsin."
+            return "Aramana veya seçtiğin filtrelere uygun etkinlik bulunamadı."
         } else {
-            return "Bu şehir için henüz etkinlik eklenmemiş. Daha sonra tekrar kontrol edebilirsin."
+            return "Bu şehir için henüz yaklaşan etkinlik eklenmemiş."
         }
-    }
-    
-    func clearFilters() {
-        selectedCategory = nil
-        searchText = ""
     }
 
     var resultsTitle: String {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if !query.isEmpty, let selectedCategory {
-            return "\(selectedCategory.displayName) içinde arama"
-        } else if !query.isEmpty {
-            return "Arama sonuçları"
-        } else if let selectedCategory {
-            return selectedCategory.displayName
-        } else {
-            return "Yaklaşan etkinlikler"
-        }
+        hasActiveFilters ? "Arama sonuçları" : "Yaklaşan etkinlikler"
     }
 
     func loadEvents() async {
@@ -94,6 +170,15 @@ final class EventsViewModel: ObservableObject {
         selectedCategory = category
     }
 
+    func selectQuickFilter(_ filter: EventQuickFilter) {
+        selectedQuickFilter = filter
+    }
+
+    func clearFilters() {
+        selectedCategory = nil
+        selectedQuickFilter = .all
+        searchText = ""
+    }
 
     private func eventMatchesSearch(_ event: Event, query: String) -> Bool {
         let normalizedQuery = query.localizedLowercase
@@ -101,17 +186,32 @@ final class EventsViewModel: ObservableObject {
         let searchableText = [
             event.title,
             event.description,
-            event.venueName,
-            event.address ?? "",
-            event.district ?? "",
             event.category.displayName,
-            event.priceType.displayName,
+            event.venueName,
+            event.district ?? "",
+            event.address ?? "",
             event.organizer ?? "",
+            event.priceType.displayName,
             event.tags.joined(separator: " ")
         ]
         .joined(separator: " ")
         .localizedLowercase
 
         return searchableText.contains(normalizedQuery)
+    }
+
+    private func eventDate(from string: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
+
+        if let date = formatter.date(from: string) {
+            return date
+        }
+
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: string)
     }
 }

@@ -1,8 +1,10 @@
 import SwiftUI
+import FirebaseAuth
 
 enum AppLaunchState {
-    case splash
+    case startupSplash
     case onboarding
+    case welcome
     case citySelection
     case login
     case register
@@ -11,16 +13,37 @@ enum AppLaunchState {
 
 struct RootView: View {
     @StateObject private var appState = AppState()
-    @State private var launchState: AppLaunchState = .splash
+    @State private var launchState: AppLaunchState = .startupSplash
+    @State private var didDecideInitialScreen = false
 
     var body: some View {
         Group {
             switch launchState {
-            case .splash:
+            case .startupSplash:
+                StartupSplashView()
+                    .task {
+                        guard !didDecideInitialScreen else { return }
+                        didDecideInitialScreen = true
+
+                        try? await Task.sleep(nanoseconds: 2_500_000_000)
+
+                        await decideInitialScreen()
+                    }
+
+            case .onboarding:
+                OnboardingView {
+                    appState.completeOnboarding()
+
+                    withAnimation {
+                        launchState = .welcome
+                    }
+                }
+
+            case .welcome:
                 SplashView(
                     onFinish: {
                         appState.continueAsGuest()
-                        
+
                         withAnimation {
                             launchState = .citySelection
                         }
@@ -32,21 +55,32 @@ struct RootView: View {
                     }
                 )
 
-            case .onboarding:
-                OnboardingView {
-                    appState.completeOnboarding()
+            case .citySelection:
+                CitySelectionView { city in
+                    appState.selectCity(city)
+
                     withAnimation {
-                        launchState = .citySelection
+                        launchState = .main
                     }
                 }
 
             case .login:
                 LoginView(
                     onLoginSuccess: {
-                        appState.completeLogin()
+                        let user = Auth.auth().currentUser
 
-                        withAnimation {
-                            launchState = .citySelection
+                        appState.completeLogin(
+                            displayName: user?.displayName
+                        )
+
+                        Task {
+                            await appState.loadUserCityOrSetDefault()
+
+                            await MainActor.run {
+                                withAnimation {
+                                    launchState = .main
+                                }
+                            }
                         }
                     },
                     onRegisterTap: {
@@ -56,7 +90,7 @@ struct RootView: View {
                     },
                     onBack: {
                         withAnimation {
-                            launchState = .splash
+                            launchState = .welcome
                         }
                     }
                 )
@@ -64,7 +98,14 @@ struct RootView: View {
             case .register:
                 RegisterView(
                     onRegisterSuccess: {
-                        appState.completeRegister(displayName: "Gezgin")
+                        let user = Auth.auth().currentUser
+
+                        appState.completeRegister(
+                            displayName: user?.displayName
+                        )
+
+                        appState.resetCitySelection()
+
                         withAnimation {
                             launchState = .citySelection
                         }
@@ -81,35 +122,57 @@ struct RootView: View {
                     }
                 )
 
-            case .citySelection:
-                CitySelectionView { city in
-                    appState.selectCity(city)
-                    withAnimation {
-                        launchState = .main
-                    }
-                }
-
             case .main:
-                if let selectedCityId = appState.selectedCityId {
-                    MainTabBarView(
-                        cityId: selectedCityId,
-                        authStatus: appState.authStatus,
-                        userDisplayName: appState.userDisplayName,
-                        onChangeCity: {
-                            appState.resetCitySelection()
-                            withAnimation {
-                                launchState = .citySelection
-                            }
-                        }
-                    )
-                } else {
-                    CitySelectionView { city in
-                        appState.selectCity(city)
+                let selectedCityId = appState.selectedCityId ?? "samsun"
+
+                MainTabBarView(
+                    cityId: selectedCityId,
+                    authStatus: appState.authStatus,
+                    userDisplayName: appState.userDisplayName,
+                    onChangeCity: {
+                        appState.resetCitySelection()
+
                         withAnimation {
-                            launchState = .main
+                            launchState = .citySelection
+                        }
+                    },
+                    onLogout: {
+                        appState.logout()
+
+                        withAnimation {
+                            launchState = .welcome
                         }
                     }
-                }
+                )
+            }
+        }
+    }
+
+    @MainActor
+    private func decideInitialScreen() async {
+        FirebaseAuthService.shared.refreshCurrentUser()
+
+        if let user = Auth.auth().currentUser {
+            appState.completeLogin(
+                displayName: user.displayName
+            )
+
+            await appState.loadUserCityOrSetDefault()
+
+            withAnimation {
+                launchState = .main
+            }
+
+            return
+        }
+
+        appState.continueAsGuest()
+
+        withAnimation {
+            if appState.hasSeenOnboarding {
+                launchState = .welcome
+            } else {
+                launchState = .onboarding
             }
         }
     }
