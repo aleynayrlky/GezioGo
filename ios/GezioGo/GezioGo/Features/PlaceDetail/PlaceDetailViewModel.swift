@@ -14,22 +14,55 @@ final class PlaceDetailViewModel: ObservableObject {
     @Published var place: Place
     @Published var isFavorite: Bool = false
     @Published var reviews: [PlaceReviewItem] = []
+    @Published var errorMessage: String?
 
-    private let favoritesService: FavoritesService
+    private let firebaseFavoritesService: FirebaseFavoritesService
+    private let authService: FirebaseAuthService
 
     init(
         place: Place,
-        favoritesService: FavoritesService = FavoritesService()
+        firebaseFavoritesService: FirebaseFavoritesService = .shared,
+        authService: FirebaseAuthService = .shared
     ) {
         self.place = place
-        self.favoritesService = favoritesService
-        self.isFavorite = favoritesService.isFavorite(placeId: place.id)
+        self.firebaseFavoritesService = firebaseFavoritesService
+        self.authService = authService
         self.reviews = Self.mockReviews(for: place)
     }
 
-    func toggleFavorite() {
-        favoritesService.toggleFavorite(placeId: place.id)
-        isFavorite = favoritesService.isFavorite(placeId: place.id)
+    func loadFavoriteState() async {
+        guard let userId = authService.userId else {
+            isFavorite = false
+            return
+        }
+
+        do {
+            isFavorite = try await firebaseFavoritesService.isFavoritePlace(
+                userId: userId,
+                placeId: place.id
+            )
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func toggleFavorite() async {
+        guard let userId = authService.userId else {
+            isFavorite = false
+            errorMessage = "Favorilere eklemek için giriş yapmalısın."
+            return
+        }
+
+        do {
+            isFavorite = try await firebaseFavoritesService.toggleFavoritePlace(
+                userId: userId,
+                place: place
+            )
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func addReview(

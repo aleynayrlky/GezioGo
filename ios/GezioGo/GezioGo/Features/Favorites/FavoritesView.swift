@@ -30,15 +30,27 @@ private enum FavoritesSegment: String, CaseIterable {
 
 struct FavoritesView: View {
     let cityId: String
+    let authStatus: AppState.AuthStatus
+    var onAuthTap: (() -> Void)? = nil
 
     @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: FavoritesViewModel
     @State private var selectedSegment: FavoritesSegment = .places
 
-    init(cityId: String) {
+    init(
+        cityId: String,
+        authStatus: AppState.AuthStatus,
+        onAuthTap: (() -> Void)? = nil
+    ) {
         self.cityId = cityId
+        self.authStatus = authStatus
+        self.onAuthTap = onAuthTap
+
         _viewModel = StateObject(
-            wrappedValue: FavoritesViewModel(cityId: cityId)
+            wrappedValue: FavoritesViewModel(
+                cityId: cityId,
+                authStatus: authStatus
+            )
         )
     }
 
@@ -47,31 +59,39 @@ struct FavoritesView: View {
             AppColors.background
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    topLogoSection
-
-                    titleSection
-
-                    segmentControl
-
-                    contentSection
+            if authStatus == .guest {
+                AuthRequiredView(
+                    title: "Favorilerini görmek için giriş yap",
+                    message: "Favori mekanlarını ve kaydettiğin rotaları hesabında saklamak için giriş yap veya üye ol.",
+                    buttonTitle: "Giriş Yap / Üye Ol"
+                ) {
+                    onAuthTap?()
                 }
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.top, AppSpacing.md)
-                .padding(.bottom, 120)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        topLogoSection
+
+                        titleSection
+
+                        segmentControl
+
+                        contentSection
+                    }
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.top, AppSpacing.md)
+                    .padding(.bottom, 120)
+                }
             }
         }
         .navigationTitle("Favoriler")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.loadFavorites()
-            await viewModel.refreshSavedRoutes()
         }
         .onAppear {
             Task {
-                await viewModel.refreshFavorites()
-                await viewModel.refreshSavedRoutes()
+                await viewModel.refreshAllFavorites()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .favoritesDidChange)) { _ in
@@ -188,7 +208,6 @@ struct FavoritesView: View {
             ErrorStateView(message: errorMessage) {
                 Task {
                     await viewModel.loadFavorites()
-                    await viewModel.refreshSavedRoutes()
                 }
             }
         } else {
@@ -369,7 +388,9 @@ struct FavoritesView: View {
                         Spacer()
 
                         Button {
-                            viewModel.removeFavorite(place)
+                            Task {
+                                await viewModel.removeFavorite(place)
+                            }
                         } label: {
                             Image(systemName: "heart.fill")
                                 .font(.system(size: 15, weight: .semibold))
@@ -420,7 +441,9 @@ struct FavoritesView: View {
         .buttonStyle(.plain)
         .contextMenu {
             Button(role: .destructive) {
-                viewModel.removeFavorite(place)
+                Task {
+                    await viewModel.removeFavorite(place)
+                }
             } label: {
                 Label("Favorilerden çıkar", systemImage: "heart.slash")
             }
@@ -611,6 +634,9 @@ struct FavoritesView: View {
 
 #Preview {
     NavigationStack {
-        FavoritesView(cityId: "samsun")
+        FavoritesView(
+            cityId: "samsun",
+            authStatus: .authenticated
+        )
     }
 }

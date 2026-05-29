@@ -142,6 +142,11 @@ struct RootView: View {
                         withAnimation {
                             launchState = .welcome
                         }
+                    },
+                    onAuthTap: {
+                        withAnimation {
+                            launchState = .login
+                        }
                     }
                 )
             }

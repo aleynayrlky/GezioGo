@@ -7,6 +7,7 @@ struct MainTabBarView: View {
     let userDisplayName: String?
     var onChangeCity: (() -> Void)? = nil
     var onLogout: (() -> Void)? = nil
+    var onAuthTap: (() -> Void)? = nil
 
     @State private var selectedTab: MainTab = .home
     @State private var homePath: [AppRoute] = []
@@ -55,10 +56,14 @@ struct MainTabBarView: View {
                 .tag(MainTab.planner)
 
                 NavigationStack(path: $favoritesPath) {
-                    FavoritesView(cityId: cityId)
-                        .navigationDestination(for: AppRoute.self) { route in
-                            destination(for: route)
-                        }
+                    FavoritesView(
+                        cityId: cityId,
+                        authStatus: authStatus,
+                        onAuthTap: onAuthTap
+                    )
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destination(for: route)
+                    }
                 }
                 .environment(\.navigate) { route in
                     favoritesPath.append(route)
@@ -273,6 +278,7 @@ struct MainTabBarView: View {
         cityId: "samsun",
         authStatus: .authenticated,
         userDisplayName: "Aleyna Yerlikaya",
-        onLogout: {}
+        onLogout: {},
+        onAuthTap: {}
     )
 }

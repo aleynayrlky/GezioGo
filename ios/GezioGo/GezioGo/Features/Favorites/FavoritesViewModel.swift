@@ -10,30 +10,36 @@ final class FavoritesViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let cityId: String
+    private let authStatus: AppState.AuthStatus
     private let dataService: DataServiceProtocol
-    private let favoritesService: FavoritesService
+    private let firebaseFavoritesService: FirebaseFavoritesService
     private let savedRoutesService: SavedRoutesService
+    private let authService: FirebaseAuthService
 
     init(
         cityId: String,
+        authStatus: AppState.AuthStatus,
         dataService: DataServiceProtocol? = nil,
-        favoritesService: FavoritesService? = nil,
-        savedRoutesService: SavedRoutesService? = nil
+        firebaseFavoritesService: FirebaseFavoritesService = .shared,
+        savedRoutesService: SavedRoutesService? = nil,
+        authService: FirebaseAuthService = .shared
     ) {
         self.cityId = cityId
+        self.authStatus = authStatus
         self.dataService = dataService ?? MockDataService()
-        self.favoritesService = favoritesService ?? FavoritesService()
+        self.firebaseFavoritesService = firebaseFavoritesService
         self.savedRoutesService = savedRoutesService ?? SavedRoutesService.shared
+        self.authService = authService
     }
-    
+
     var hasActiveSearch: Bool {
         !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-    
+
     var hasSearchResults: Bool {
         !filteredSavedRoutes.isEmpty || !filteredFavoritePlaces.isEmpty
     }
-    
+
     var filteredSavedRoutes: [TripRoute] {
         let query = normalizedSearchText
 
@@ -45,7 +51,7 @@ final class FavoritesViewModel: ObservableObject {
             routeSearchText(route).contains(query)
         }
     }
-    
+
     var filteredFavoritePlaces: [Place] {
         let query = normalizedSearchText
 
@@ -59,31 +65,39 @@ final class FavoritesViewModel: ObservableObject {
     }
 
     func loadFavorites() async {
+        guard authStatus == .authenticated else {
+            favoritePlaces = []
+            savedRoutes = []
+            isLoading = false
+            errorMessage = nil
+            return
+        }
+
         isLoading = true
         errorMessage = nil
 
-        do {
-            let allPlaces = try await dataService.fetchPlaces(cityId: cityId)
-            let favoriteIds = favoritesService.getFavoritePlaceIds()
-
-            favoritePlaces = allPlaces.filter { place in
-                favoriteIds.contains(place.id)
-            }
-
-            await refreshSavedRoutes()
-
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
-        }
+        await refreshFavorites()
+        await refreshSavedRoutes()
 
         isLoading = false
     }
 
     func refreshFavorites() async {
+        guard authStatus == .authenticated else {
+            favoritePlaces = []
+            errorMessage = nil
+            return
+        }
+
+        guard let userId = authService.userId else {
+            favoritePlaces = []
+            errorMessage = "Favorileri görüntülemek için giriş yapmalısın."
+            return
+        }
+
         do {
             let allPlaces = try await dataService.fetchPlaces(cityId: cityId)
-            let favoriteIds = favoritesService.getFavoritePlaceIds()
+            let favoriteIds = try await firebaseFavoritesService.fetchFavoritePlaceIds(userId: userId)
 
             favoritePlaces = allPlaces.filter { place in
                 favoriteIds.contains(place.id)
@@ -96,6 +110,12 @@ final class FavoritesViewModel: ObservableObject {
     }
 
     func refreshSavedRoutes() async {
+        guard authStatus == .authenticated else {
+            savedRoutes = []
+            errorMessage = nil
+            return
+        }
+
         do {
             let allRoutes = try await dataService.fetchRoutes(userId: "user_001")
             let savedIds = savedRoutesService.savedRouteIds
@@ -115,21 +135,60 @@ final class FavoritesViewModel: ObservableObject {
         await refreshSavedRoutes()
     }
 
-    func removeFavorite(_ place: Place) {
-        favoritesService.removeFavorite(placeId: place.id)
-        favoritePlaces.removeAll { $0.id == place.id }
+    func removeFavorite(_ place: Place) async {
+        guard authStatus == .authenticated else {
+            return
+        }
+
+        guard let userId = authService.userId else {
+            errorMessage = "Favorilerden çıkarmak için giriş yapmalısın."
+            return
+        }
+
+        do {
+            try await firebaseFavoritesService.removeFavoritePlace(
+                userId: userId,
+                placeId: place.id
+            )
+
+            favoritePlaces.removeAll { $0.id == place.id }
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
-    func clearAllFavorites() {
-        favoritesService.clearFavorites()
-        favoritePlaces = []
+    func clearAllFavorites() async {
+        guard authStatus == .authenticated else {
+            favoritePlaces = []
+            return
+        }
+
+        guard let userId = authService.userId else {
+            errorMessage = "Favorileri temizlemek için giriş yapmalısın."
+            return
+        }
+
+        do {
+            for place in favoritePlaces {
+                try await firebaseFavoritesService.removeFavoritePlace(
+                    userId: userId,
+                    placeId: place.id
+                )
+            }
+
+            favoritePlaces = []
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
-    
+
     func removeSavedRoute(_ route: TripRoute) {
         savedRoutesService.remove(routeId: route.id)
         savedRoutes.removeAll { $0.id == route.id }
     }
-    
+
     private var normalizedSearchText: String {
         searchText
             .trimmingCharacters(in: .whitespacesAndNewlines)

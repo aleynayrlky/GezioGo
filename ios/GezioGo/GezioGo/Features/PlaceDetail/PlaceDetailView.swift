@@ -67,13 +67,27 @@ struct PlaceDetailView: View {
                         return
                     }
 
-                    viewModel.toggleFavorite()
+                    Task {
+                        await viewModel.toggleFavorite()
+                    }
                 } label: {
                     Image(systemName: viewModel.favoriteButtonIcon)
                         .foregroundStyle(viewModel.isFavorite ? AppColors.gold : AppColors.petrol)
                         .opacity(authStatus == .authenticated ? 1 : 0.55)
                 }
                 .accessibilityLabel(viewModel.favoriteButtonTitle)
+            }
+        }
+        .task {
+            if authStatus == .authenticated {
+                await viewModel.loadFavoriteState()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .favoritesDidChange)) { _ in
+            Task {
+                if authStatus == .authenticated {
+                    await viewModel.loadFavoriteState()
+                }
             }
         }
         .alert("Giriş yapmalısın", isPresented: $showLoginRequiredAlert) {
@@ -169,7 +183,9 @@ struct PlaceDetailView: View {
                         return
                     }
 
-                    viewModel.toggleFavorite()
+                    Task {
+                        await viewModel.toggleFavorite()
+                    }
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: viewModel.favoriteButtonIcon)
@@ -559,47 +575,5 @@ struct PlaceDetailView: View {
         default:
             return viewModel.place.cityId.capitalized
         }
-    }
-}
-
-#Preview {
-    NavigationStack {
-        PlaceDetailView(
-            place: Place(
-                id: "atakum-sahili",
-                cityId: "samsun",
-                name: "Atakum Sahili",
-                slug: "atakum-sahili",
-                category: .nature,
-                subCategory: nil,
-                shortDescription: "Samsun’un sahil yürüyüşü, kafe ve gün batımı deneyimiyle öne çıkan noktalarından biri.",
-                longDescription: "Atakum Sahili; yürüyüş yolu, kafe ve restoranları, deniz manzarası ve sosyal yaşam alanlarıyla şehirde keyifli vakit geçirmek isteyen kullanıcılar için güçlü bir duraktır.",
-                district: "Atakum",
-                address: "Atakum Sahil Yolu, Atakum / Samsun",
-                latitude: 41.34,
-                longitude: 36.25,
-                openingHours: "Günün her saati açık alan",
-                priceType: .free,
-                priceInfo: "Açık alan ücretsizdir.",
-                ticketUrl: nil,
-                sourceUrl: nil,
-                imageUrls: [],
-                tags: ["sahil", "yürüyüş", "doğa"],
-                isIndoor: false,
-                isOutdoor: true,
-                isChildFriendly: true,
-                isStudentFriendly: true,
-                isAccessible: true,
-                averageVisitDurationMinutes: 90,
-                partnerId: nil,
-                contentStatus: .published,
-                createdBy: nil,
-                approvedBy: nil,
-                lastVerifiedAt: nil,
-                createdAt: "",
-                updatedAt: ""
-            ),
-            authStatus: .authenticated
-        )
     }
 }
