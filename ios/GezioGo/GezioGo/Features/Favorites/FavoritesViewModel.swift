@@ -13,7 +13,7 @@ final class FavoritesViewModel: ObservableObject {
     private let authStatus: AppState.AuthStatus
     private let dataService: DataServiceProtocol
     private let firebaseFavoritesService: FirebaseFavoritesService
-    private let savedRoutesService: SavedRoutesService
+    private let firebaseSavedRoutesService: FirebaseSavedRoutesService
     private let authService: FirebaseAuthService
 
     init(
@@ -21,14 +21,14 @@ final class FavoritesViewModel: ObservableObject {
         authStatus: AppState.AuthStatus,
         dataService: DataServiceProtocol? = nil,
         firebaseFavoritesService: FirebaseFavoritesService = .shared,
-        savedRoutesService: SavedRoutesService? = nil,
+        firebaseSavedRoutesService: FirebaseSavedRoutesService = .shared,
         authService: FirebaseAuthService = .shared
     ) {
         self.cityId = cityId
         self.authStatus = authStatus
         self.dataService = dataService ?? MockDataService()
         self.firebaseFavoritesService = firebaseFavoritesService
-        self.savedRoutesService = savedRoutesService ?? SavedRoutesService.shared
+        self.firebaseSavedRoutesService = firebaseSavedRoutesService
         self.authService = authService
     }
 
@@ -116,9 +116,15 @@ final class FavoritesViewModel: ObservableObject {
             return
         }
 
+        guard let userId = authService.userId else {
+            savedRoutes = []
+            errorMessage = "Kaydedilen rotaları görüntülemek için giriş yapmalısın."
+            return
+        }
+
         do {
             let allRoutes = try await dataService.fetchRoutes(userId: "user_001")
-            let savedIds = savedRoutesService.savedRouteIds
+            let savedIds = try await firebaseSavedRoutesService.fetchSavedRouteIds(userId: userId)
 
             savedRoutes = allRoutes.filter { route in
                 route.cityId == cityId && savedIds.contains(route.id)
@@ -184,9 +190,27 @@ final class FavoritesViewModel: ObservableObject {
         }
     }
 
-    func removeSavedRoute(_ route: TripRoute) {
-        savedRoutesService.remove(routeId: route.id)
-        savedRoutes.removeAll { $0.id == route.id }
+    func removeSavedRoute(_ route: TripRoute) async {
+        guard authStatus == .authenticated else {
+            return
+        }
+
+        guard let userId = authService.userId else {
+            errorMessage = "Rotayı kaydedilenlerden çıkarmak için giriş yapmalısın."
+            return
+        }
+
+        do {
+            try await firebaseSavedRoutesService.removeSavedRoute(
+                userId: userId,
+                routeId: route.id
+            )
+
+            savedRoutes.removeAll { $0.id == route.id }
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     private var normalizedSearchText: String {

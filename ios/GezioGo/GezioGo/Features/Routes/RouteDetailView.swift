@@ -62,8 +62,12 @@ struct RouteDetailView: View {
                         return
                     }
 
-                    withAnimation {
-                        viewModel.toggleSaved()
+                    Task {
+                        withAnimation {
+                            viewModel.isSaved.toggle()
+                        }
+
+                        await viewModel.toggleSaved()
                     }
                 } label: {
                     Image(systemName: viewModel.isSaved ? "bookmark.fill" : "bookmark")
@@ -74,11 +78,18 @@ struct RouteDetailView: View {
             }
         }
         .task {
-            viewModel.refreshSavedState()
+            if authStatus == .authenticated {
+                await viewModel.loadSavedState()
+            }
+
             await viewModel.loadPlaces()
         }
         .onReceive(NotificationCenter.default.publisher(for: .savedRoutesDidChange)) { _ in
-            viewModel.refreshSavedState()
+            Task {
+                if authStatus == .authenticated {
+                    await viewModel.refreshSavedState()
+                }
+            }
         }
         .alert("Giriş yapmalısın", isPresented: $showLoginRequiredAlert) {
             Button("Tamam", role: .cancel) { }

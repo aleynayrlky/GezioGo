@@ -10,22 +10,25 @@ final class RouteDetailViewModel: ObservableObject {
     @Published var isSaved = false
     @Published var isLoadingPlaces = false
     @Published var placeLoadErrorMessage: String?
+    @Published var errorMessage: String?
 
     private let dataService: DataServiceProtocol
-    private let savedRoutesService: SavedRoutesService
+    private let firebaseSavedRoutesService: FirebaseSavedRoutesService
+    private let authService: FirebaseAuthService
     private let mapService: MapService
 
     init(
         route: TripRoute,
         dataService: DataServiceProtocol? = nil,
-        savedRoutesService: SavedRoutesService = .shared,
+        firebaseSavedRoutesService: FirebaseSavedRoutesService = .shared,
+        authService: FirebaseAuthService = .shared,
         mapService: MapService = MapService()
     ) {
         self.route = route
         self.dataService = dataService ?? MockDataService()
-        self.savedRoutesService = savedRoutesService
+        self.firebaseSavedRoutesService = firebaseSavedRoutesService
+        self.authService = authService
         self.mapService = mapService
-        self.isSaved = savedRoutesService.isSaved(routeId: route.id)
     }
 
     var durationText: String {
@@ -107,7 +110,7 @@ final class RouteDetailViewModel: ObservableObject {
     var sortedStops: [RouteStop] {
         route.stops.sorted { $0.order < $1.order }
     }
-    
+
     var shareTitle: String {
         RouteShareTextBuilder.shareTitle(for: route)
     }
@@ -130,13 +133,43 @@ final class RouteDetailViewModel: ObservableObject {
         return canOpenDirections(for: selectedStop)
     }
 
-    func toggleSaved() {
-        savedRoutesService.toggle(routeId: route.id)
-        isSaved = savedRoutesService.isSaved(routeId: route.id)
+    func loadSavedState() async {
+        guard let userId = authService.userId else {
+            isSaved = false
+            return
+        }
+
+        do {
+            isSaved = try await firebaseSavedRoutesService.isSavedRoute(
+                userId: userId,
+                routeId: route.id
+            )
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
-    func refreshSavedState() {
-        isSaved = savedRoutesService.isSaved(routeId: route.id)
+    func toggleSaved() async {
+        guard let userId = authService.userId else {
+            isSaved = false
+            errorMessage = "Rota kaydetmek için giriş yapmalısın."
+            return
+        }
+
+        do {
+            isSaved = try await firebaseSavedRoutesService.toggleSavedRoute(
+                userId: userId,
+                route: route
+            )
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func refreshSavedState() async {
+        await loadSavedState()
     }
 
     func canOpenDirections(for stop: RouteStop) -> Bool {
@@ -226,7 +259,7 @@ final class RouteDetailViewModel: ObservableObject {
             return interest
         }
     }
-    
+
     func companionDisplayName(_ companions: String) -> String {
         switch companions {
         case "solo":

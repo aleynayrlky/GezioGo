@@ -512,7 +512,9 @@ struct FavoritesView: View {
             }
 
             Button(role: .destructive) {
-                viewModel.removeSavedRoute(route)
+                Task {
+                    await viewModel.removeSavedRoute(route)
+                }
             } label: {
                 Label("Kaydedilenlerden çıkar", systemImage: "bookmark.slash")
             }
