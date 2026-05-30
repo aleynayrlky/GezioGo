@@ -14,9 +14,7 @@ final class AIPlannerViewModel: ObservableObject {
 
     @Published var isDatePickerPresented = false
     @Published var showValidationAlert = false
-    @Published var showReadyAlert = false
     @Published var alertMessage = ""
-    @Published var generatedRequest: AIPlannerRequest?
 
     let cityId: String
 
@@ -98,16 +96,6 @@ final class AIPlannerViewModel: ObservableObject {
         return max(difference + 1, 1)
     }
 
-    var isFormReady: Bool {
-        selectedCity != nil &&
-        startDate != nil &&
-        endDate != nil &&
-        selectedBudget != nil &&
-        !selectedInterests.isEmpty &&
-        selectedTempo != nil &&
-        selectedTransport != nil
-    }
-
     func toggleInterest(_ interest: String) {
         if selectedInterests.contains(interest) {
             selectedInterests.remove(interest)
@@ -126,21 +114,13 @@ final class AIPlannerViewModel: ObservableObject {
         }
     }
 
-    func createRouteTapped() {
+    func createMockRoute() -> TripRoute? {
         guard let request = buildRequest() else {
             showValidationAlert = true
-            return
+            return nil
         }
 
-        generatedRequest = request
-        alertMessage = """
-        AI’ye gönderilecek rota isteği hazırlandı.
-
-        \(request.summaryText)
-
-        Bir sonraki adımda bunu Firebase Functions + OpenAI bağlantısına göndereceğiz.
-        """
-        showReadyAlert = true
+        return AIPlannerMockRouteBuilder.buildRoute(from: request)
     }
 
     private func buildRequest() -> AIPlannerRequest? {

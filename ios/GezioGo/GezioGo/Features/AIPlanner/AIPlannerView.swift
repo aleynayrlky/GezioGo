@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AIPlannerView: View {
+    @Environment(\.navigate) private var navigate
     @StateObject private var viewModel: AIPlannerViewModel
 
     init(cityId: String) {
@@ -33,11 +34,6 @@ struct AIPlannerView: View {
             datePickerSheet
         }
         .alert("Eksik bilgi", isPresented: $viewModel.showValidationAlert) {
-            Button("Tamam", role: .cancel) { }
-        } message: {
-            Text(viewModel.alertMessage)
-        }
-        .alert("Rota isteği hazır", isPresented: $viewModel.showReadyAlert) {
             Button("Tamam", role: .cancel) { }
         } message: {
             Text(viewModel.alertMessage)
@@ -360,7 +356,9 @@ struct AIPlannerView: View {
 
     private var createRouteButton: some View {
         Button {
-            viewModel.createRouteTapped()
+            if let route = viewModel.createMockRoute() {
+                navigate(.routeDetail(route: route))
+            }
         } label: {
             HStack(spacing: AppSpacing.sm) {
                 Image(systemName: "sparkles")
