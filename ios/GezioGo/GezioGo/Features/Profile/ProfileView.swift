@@ -22,17 +22,12 @@ struct ProfileView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     topSection
-
                     titleSection
-
                     profileCard
-
                     preferencesSection
-
+                    activitySection
                     notificationsSection
-
                     cityAndLanguageSection
-
                     logoutButton
                 }
                 .padding(.horizontal, AppSpacing.md)
@@ -181,32 +176,31 @@ struct ProfileView: View {
         }
     }
 
-    private func profileStat(
-        value: String,
-        title: String,
-        iconName: String
-    ) -> some View {
-        VStack(spacing: 3) {
-            ZStack {
-                Circle()
-                    .fill(AppColors.cream)
-                    .frame(width: 26, height: 26)
+    private var activitySection: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            sectionTitle("Aktivitem")
 
-                Image(systemName: iconName)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(AppColors.petrol)
+            compactCard {
+                VStack(spacing: 0) {
+                    Button {
+                        if authStatus == .authenticated {
+                            navigate(.myReviews)
+                        }
+                    } label: {
+                        profileRowContent(
+                            iconName: "star.bubble",
+                            iconColor: AppColors.teal,
+                            title: "Yorumlarım",
+                            value: authStatus == .authenticated ? "Görüntüle" : "Giriş gerekli",
+                            showsChevron: true
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(authStatus != .authenticated)
+                    .opacity(authStatus == .authenticated ? 1 : 0.55)
+                }
             }
-
-            Text(value)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.petrol)
-
-            Text(title)
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(AppColors.textSecondary)
-                .lineLimit(1)
         }
-        .frame(maxWidth: .infinity)
     }
 
     private var preferencesSection: some View {
@@ -343,6 +337,34 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
         .disabled(authStatus != .authenticated)
+    }
+
+    private func profileStat(
+        value: String,
+        title: String,
+        iconName: String
+    ) -> some View {
+        VStack(spacing: 3) {
+            ZStack {
+                Circle()
+                    .fill(AppColors.cream)
+                    .frame(width: 26, height: 26)
+
+                Image(systemName: iconName)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(AppColors.petrol)
+            }
+
+            Text(value)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.petrol)
+
+            Text(title)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(AppColors.textSecondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func sectionTitle(_ title: String) -> some View {

@@ -1,33 +1,45 @@
 import Foundation
 import Combine
 
-struct PlaceReviewItem: Identifiable, Hashable {
-    let id: String
-    let userName: String
-    let rating: Int
-    let comment: String
-    let dateText: String
-}
-
 @MainActor
 final class PlaceDetailViewModel: ObservableObject {
     @Published var place: Place
     @Published var isFavorite: Bool = false
-    @Published var reviews: [PlaceReviewItem] = []
+    @Published var reviews: [Review] = []
     @Published var errorMessage: String?
+    @Published var isLoadingReviews = false
 
     private let firebaseFavoritesService: FirebaseFavoritesService
+    private let firebaseReviewsService: FirebaseReviewsService
     private let authService: FirebaseAuthService
 
     init(
         place: Place,
         firebaseFavoritesService: FirebaseFavoritesService = .shared,
+        firebaseReviewsService: FirebaseReviewsService = .shared,
         authService: FirebaseAuthService = .shared
     ) {
         self.place = place
         self.firebaseFavoritesService = firebaseFavoritesService
+        self.firebaseReviewsService = firebaseReviewsService
         self.authService = authService
-        self.reviews = Self.mockReviews(for: place)
+    }
+
+    var currentUserId: String? {
+        authService.userId
+    }
+
+    var currentUserReview: Review? {
+        guard let currentUserId else {
+            return nil
+        }
+
+        return reviews.first { $0.userId == currentUserId }
+    }
+
+    func loadInitialData() async {
+        await loadReviews()
+        await loadFavoriteState()
     }
 
     func loadFavoriteState() async {
@@ -65,25 +77,75 @@ final class PlaceDetailViewModel: ObservableObject {
         }
     }
 
+    func loadReviews() async {
+        isLoadingReviews = true
+        errorMessage = nil
+
+        do {
+            reviews = try await firebaseReviewsService.fetchReviews(
+                targetId: place.id,
+                targetType: .place
+            )
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
+        isLoadingReviews = false
+    }
+
     func addReview(
         rating: Int,
-        comment: String
-    ) {
+        comment: String,
+        displayName: String?
+    ) async {
         let trimmedComment = comment.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmedComment.isEmpty else {
             return
         }
 
-        let review = PlaceReviewItem(
-            id: UUID().uuidString,
-            userName: "Sen",
-            rating: rating,
-            comment: trimmedComment,
-            dateText: "Az önce"
-        )
+        guard let userId = authService.userId else {
+            errorMessage = "Yorum yapmak için giriş yapmalısın."
+            return
+        }
 
-        reviews.insert(review, at: 0)
+        do {
+            try await firebaseReviewsService.addReview(
+                targetId: place.id,
+                targetTitle: place.name,
+                targetType: .place,
+                userId: userId,
+                displayName: displayName ?? authService.userDisplayName ?? "Gezgin",
+                rating: rating,
+                comment: trimmedComment
+            )
+
+            await loadReviews()
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteReview(_ review: Review) async {
+        guard let userId = authService.userId else {
+            errorMessage = "Yorum silmek için giriş yapmalısın."
+            return
+        }
+
+        guard review.userId == userId else {
+            errorMessage = "Sadece kendi yorumunu silebilirsin."
+            return
+        }
+
+        do {
+            try await firebaseReviewsService.deleteReview(reviewId: review.id)
+            reviews.removeAll { $0.id == review.id }
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     var favoriteButtonIcon: String {
@@ -96,7 +158,7 @@ final class PlaceDetailViewModel: ObservableObject {
 
     var averageRating: Double {
         guard !reviews.isEmpty else {
-            return 4.8
+            return 0
         }
 
         let total = reviews.reduce(0) { $0 + $1.rating }
@@ -104,7 +166,11 @@ final class PlaceDetailViewModel: ObservableObject {
     }
 
     var ratingText: String {
-        String(format: "%.1f", averageRating)
+        guard !reviews.isEmpty else {
+            return "-"
+        }
+
+        return String(format: "%.1f", averageRating)
     }
 
     var reviewCountText: String {
@@ -154,24 +220,5 @@ final class PlaceDetailViewModel: ObservableObject {
         } else {
             return "Alan bilgisi yok"
         }
-    }
-
-    private static func mockReviews(for place: Place) -> [PlaceReviewItem] {
-        [
-            PlaceReviewItem(
-                id: "review_1_\(place.id)",
-                userName: "Ayşe",
-                rating: 5,
-                comment: "Çok keyifli bir deneyimdi. Özellikle konumu ve atmosferi çok güzeldi.",
-                dateText: "2 gün önce"
-            ),
-            PlaceReviewItem(
-                id: "review_2_\(place.id)",
-                userName: "Mehmet",
-                rating: 4,
-                comment: "Kısa bir gezi için güzel bir durak. Gitmeden önce saat bilgisini kontrol etmek iyi olur.",
-                dateText: "1 hafta önce"
-            )
-        ]
     }
 }

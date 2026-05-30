@@ -5,18 +5,21 @@ struct PlaceDetailView: View {
 
     @State private var showLoginRequiredAlert = false
     @State private var showReviewSheet = false
-    @State private var reviewRating = 5
-    @State private var reviewText = ""
+    @State private var editingReview: Review?
+    @State private var reviewToDelete: Review?
 
     let authStatus: AppState.AuthStatus
+    let userDisplayName: String?
 
     private let mapService = MapService()
 
     init(
         place: Place,
-        authStatus: AppState.AuthStatus = .authenticated
+        authStatus: AppState.AuthStatus = .authenticated,
+        userDisplayName: String? = nil
     ) {
         self.authStatus = authStatus
+        self.userDisplayName = userDisplayName
         _viewModel = StateObject(
             wrappedValue: PlaceDetailViewModel(place: place)
         )
@@ -30,19 +33,12 @@ struct PlaceDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.md) {
                     heroSection
-
                     titleSection
-
                     quickInfoSection
-
                     descriptionSection
-
                     infoSection
-
                     mapSection
-
                     reviewsSection
-
                     actionSection
                 }
                 .padding(.horizontal, AppSpacing.md)
@@ -79,9 +75,7 @@ struct PlaceDetailView: View {
             }
         }
         .task {
-            if authStatus == .authenticated {
-                await viewModel.loadFavoriteState()
-            }
+            await viewModel.loadInitialData()
         }
         .onReceive(NotificationCenter.default.publisher(for: .favoritesDidChange)) { _ in
             Task {
@@ -90,13 +84,94 @@ struct PlaceDetailView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .reviewsDidChange)) { _ in
+            Task {
+                await viewModel.loadReviews()
+            }
+        }
         .alert("Giriş yapmalısın", isPresented: $showLoginRequiredAlert) {
             Button("Tamam", role: .cancel) { }
         } message: {
             Text("Favorilere eklemek, yorum yapmak veya puan vermek için giriş yapman gerekiyor.")
         }
         .sheet(isPresented: $showReviewSheet) {
-            reviewSheet
+            ReviewSheetView(
+                targetTitle: viewModel.place.name,
+                initialRating: viewModel.currentUserReview?.rating ?? 5,
+                initialComment: viewModel.currentUserReview?.comment ?? "",
+                submitButtonTitle: viewModel.currentUserReview == nil ? "Yorumu Kaydet" : "Yorumu Güncelle",
+                onSubmit: { rating, comment in
+                    Task {
+                        await viewModel.addReview(
+                            rating: rating,
+                            comment: comment,
+                            displayName: userDisplayName
+                        )
+
+                        await MainActor.run {
+                            showReviewSheet = false
+                        }
+                    }
+                },
+                onCancel: {
+                    showReviewSheet = false
+                }
+            )
+            .id(viewModel.currentUserReview?.id ?? "new-review")
+        }
+        .sheet(item: $editingReview) { review in
+            ReviewSheetView(
+                targetTitle: viewModel.place.name,
+                initialRating: review.rating,
+                initialComment: review.comment,
+                submitButtonTitle: "Yorumu Güncelle",
+                onSubmit: { rating, comment in
+                    Task {
+                        await viewModel.addReview(
+                            rating: rating,
+                            comment: comment,
+                            displayName: userDisplayName
+                        )
+
+                        await MainActor.run {
+                            editingReview = nil
+                        }
+                    }
+                },
+                onCancel: {
+                    editingReview = nil
+                }
+            )
+            .id(review.id)
+        }
+        .alert(
+            "Yorum silinsin mi?",
+            isPresented: Binding(
+                get: { reviewToDelete != nil },
+                set: { newValue in
+                    if !newValue {
+                        reviewToDelete = nil
+                    }
+                }
+            )
+        ) {
+            Button("Vazgeç", role: .cancel) {
+                reviewToDelete = nil
+            }
+
+            Button("Sil", role: .destructive) {
+                if let reviewToDelete {
+                    Task {
+                        await viewModel.deleteReview(reviewToDelete)
+
+                        await MainActor.run {
+                            self.reviewToDelete = nil
+                        }
+                    }
+                }
+            }
+        } message: {
+            Text("Bu yorum kalıcı olarak silinecek.")
         }
     }
 
@@ -331,11 +406,9 @@ struct PlaceDetailView: View {
                         return
                     }
 
-                    reviewRating = 5
-                    reviewText = ""
                     showReviewSheet = true
                 } label: {
-                    Text("Yorum Yap")
+                    Text(viewModel.currentUserReview == nil ? "Yorum Yap" : "Yorumunu Düzenle")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(AppColors.teal)
                 }
@@ -358,7 +431,7 @@ struct PlaceDetailView: View {
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundStyle(AppColors.textPrimary)
 
-                            Text("Yorum yapmak ve puan vermek için giriş yapmalısın.")
+                            Text(authStatus == .authenticated ? "Deneyimini paylaşarak diğer gezginlere yardımcı ol." : "Yorum yapmak ve puan vermek için giriş yapmalısın.")
                                 .font(.system(size: 11.5, weight: .regular))
                                 .foregroundStyle(AppColors.textSecondary)
                                 .lineLimit(2)
@@ -369,9 +442,21 @@ struct PlaceDetailView: View {
 
                     Divider()
 
-                    VStack(spacing: AppSpacing.sm) {
-                        ForEach(viewModel.reviews) { review in
-                            reviewRow(review)
+                    if viewModel.isLoadingReviews {
+                        ProgressView("Yorumlar yükleniyor...")
+                            .font(AppTypography.caption)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppSpacing.sm)
+                    } else if viewModel.reviews.isEmpty {
+                        Text("Henüz yorum yok. İlk yorumu sen yapabilirsin.")
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundStyle(AppColors.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        VStack(spacing: AppSpacing.sm) {
+                            ForEach(viewModel.reviews) { review in
+                                reviewRow(review)
+                            }
                         }
                     }
                 }
@@ -379,10 +464,10 @@ struct PlaceDetailView: View {
         }
     }
 
-    private func reviewRow(_ review: PlaceReviewItem) -> some View {
+    private func reviewRow(_ review: Review) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text(review.userName)
+                Text(review.displayName)
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .foregroundStyle(AppColors.textPrimary)
 
@@ -396,11 +481,50 @@ struct PlaceDetailView: View {
                 .foregroundStyle(AppColors.textSecondary)
                 .lineSpacing(2)
 
-            Text(review.dateText)
-                .font(.system(size: 10.5, weight: .medium))
-                .foregroundStyle(AppColors.textSecondary.opacity(0.8))
+            HStack {
+                Text(review.isEdited ? "\(review.dateText) · düzenlendi" : review.dateText)
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(AppColors.textSecondary.opacity(0.8))
+
+                Spacer()
+
+                if review.userId == viewModel.currentUserId {
+                    Button {
+                        editingReview = review
+                    } label: {
+                        Text("Düzenle")
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .foregroundStyle(AppColors.teal)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        reviewToDelete = review
+                    } label: {
+                        Text("Sil")
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .foregroundStyle(AppColors.gold)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .padding(.vertical, 2)
+        .contextMenu {
+            if review.userId == viewModel.currentUserId {
+                Button {
+                    editingReview = review
+                } label: {
+                    Label("Düzenle", systemImage: "pencil")
+                }
+
+                Button(role: .destructive) {
+                    reviewToDelete = review
+                } label: {
+                    Label("Sil", systemImage: "trash")
+                }
+            }
+        }
     }
 
     private var actionSection: some View {
@@ -439,13 +563,11 @@ struct PlaceDetailView: View {
                     return
                 }
 
-                reviewRating = 5
-                reviewText = ""
                 showReviewSheet = true
             } label: {
                 HStack(spacing: 7) {
                     Image(systemName: "star.fill")
-                    Text("Puanla")
+                    Text(viewModel.currentUserReview == nil ? "Puanla" : "Puanını Düzenle")
                 }
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(AppColors.petrol)
@@ -460,85 +582,6 @@ struct PlaceDetailView: View {
             }
             .buttonStyle(.plain)
         }
-    }
-
-    private var reviewSheet: some View {
-        NavigationStack {
-            ZStack {
-                AppColors.background
-                    .ignoresSafeArea()
-
-                VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Deneyimini paylaş")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-
-                        Text(viewModel.place.name)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Puanın")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-
-                        HStack(spacing: AppSpacing.sm) {
-                            ForEach(1...5, id: \.self) { star in
-                                Button {
-                                    reviewRating = star
-                                } label: {
-                                    Image(systemName: star <= reviewRating ? "star.fill" : "star")
-                                        .font(.system(size: 28, weight: .semibold))
-                                        .foregroundStyle(AppColors.gold)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-
-                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        Text("Yorumun")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(AppColors.textPrimary)
-
-                        TextEditor(text: $reviewText)
-                            .font(.system(size: 14))
-                            .frame(height: 140)
-                            .padding(10)
-                            .background(AppColors.cardBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 18))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 18)
-                                    .stroke(AppColors.border.opacity(0.7), lineWidth: 1)
-                            )
-                    }
-
-                    AppButton(title: "Yorumu Kaydet") {
-                        viewModel.addReview(
-                            rating: reviewRating,
-                            comment: reviewText
-                        )
-                        showReviewSheet = false
-                    }
-
-                    Spacer()
-                }
-                .padding(AppSpacing.lg)
-            }
-            .navigationTitle("Yorum Yap")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Kapat") {
-                        showReviewSheet = false
-                    }
-                    .foregroundStyle(AppColors.petrol)
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
     }
 
     private func sectionHeader(_ title: String) -> some View {

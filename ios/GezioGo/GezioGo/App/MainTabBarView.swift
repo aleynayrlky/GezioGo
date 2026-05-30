@@ -228,7 +228,8 @@ struct MainTabBarView: View {
         case .placeDetail(let place):
             PlaceDetailView(
                 place: place,
-                authStatus: authStatus
+                authStatus: authStatus,
+                userDisplayName: userDisplayName
             )
 
         case .events(let cityId):
@@ -260,6 +261,9 @@ struct MainTabBarView: View {
 
         case .mapExplore(let cityId):
             MapExploreView(cityId: cityId)
+
+        case .myReviews:
+            MyReviewsView(userDisplayName: userDisplayName)
         }
     }
 

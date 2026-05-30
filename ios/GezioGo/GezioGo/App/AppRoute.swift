@@ -10,4 +10,5 @@ enum AppRoute: Hashable {
     case accommodation(cityId: String)
     case transportation(cityId: String)
     case mapExplore(cityId: String)
+    case myReviews
 }
