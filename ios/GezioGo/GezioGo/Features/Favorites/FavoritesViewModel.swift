@@ -123,11 +123,12 @@ final class FavoritesViewModel: ObservableObject {
         }
 
         do {
-            let allRoutes = try await dataService.fetchRoutes(userId: "user_001")
-            let savedIds = try await firebaseSavedRoutesService.fetchSavedRouteIds(userId: userId)
+            let routes = try await firebaseSavedRoutesService.fetchSavedRoutes(
+                userId: userId
+            )
 
-            savedRoutes = allRoutes.filter { route in
-                route.cityId == cityId && savedIds.contains(route.id)
+            savedRoutes = routes.filter { route in
+                route.cityId == cityId
             }
 
             errorMessage = nil
