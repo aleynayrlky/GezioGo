@@ -1,63 +1,13 @@
 import SwiftUI
 
 struct AIPlannerView: View {
-    let cityId: String
+    @StateObject private var viewModel: AIPlannerViewModel
 
-    @State private var selectedCity: String?
-    @State private var startDate: Date?
-    @State private var endDate: Date?
-    @State private var selectedBudget: String?
-    @State private var selectedInterests: Set<String> = []
-    @State private var selectedTempo: String?
-    @State private var selectedTransport: String?
-    @State private var selectedPersonCount: Int = 1
-    @State private var isDatePickerPresented = false
-    @State private var showComingSoonAlert = false
-
-    private let cities: [String] = [
-        "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin",
-        "Aydın", "Balıkesir", "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa",
-        "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır", "Edirne", "Elazığ", "Erzincan",
-        "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari", "Hatay", "Isparta",
-        "Mersin", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir",
-        "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla",
-        "Muş", "Nevşehir", "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt",
-        "Sinop", "Sivas", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Şanlıurfa", "Uşak",
-        "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman", "Kırıkkale", "Batman",
-        "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce"
-    ]
-
-    private let budgetOptions: [String] = [
-        "₺0 - ₺1.500",
-        "₺1.500 - ₺3.000",
-        "₺3.000 - ₺5.000",
-        "₺5.000 - ₺7.500",
-        "₺7.500 - ₺10.000",
-        "₺10.000 - ₺15.000",
-        "₺15.000 - ₺20.000",
-        "₺20.000 - ₺30.000",
-        "₺30.000+"
-    ]
-
-    private let interests = [
-        "Tarih",
-        "Yemek",
-        "Doğa",
-        "Sanat",
-        "Alışveriş"
-    ]
-
-    private let tempos = [
-        "Rahat",
-        "Orta",
-        "Yoğun"
-    ]
-
-    private let transports = [
-        "Yürüyüş",
-        "Toplu Taşıma",
-        "Araç"
-    ]
+    init(cityId: String) {
+        _viewModel = StateObject(
+            wrappedValue: AIPlannerViewModel(cityId: cityId)
+        )
+    }
 
     var body: some View {
         ZStack {
@@ -79,13 +29,18 @@ struct AIPlannerView: View {
         }
         .navigationTitle("Planla")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $isDatePickerPresented) {
+        .sheet(isPresented: $viewModel.isDatePickerPresented) {
             datePickerSheet
         }
-        .alert("Rota oluşturma yakında", isPresented: $showComingSoonAlert) {
+        .alert("Eksik bilgi", isPresented: $viewModel.showValidationAlert) {
             Button("Tamam", role: .cancel) { }
         } message: {
-            Text("Seçimleri yapabiliyorsun. AI rota oluşturma işlemini Firebase ve AI bağlantısından sonra aktif edeceğiz.")
+            Text(viewModel.alertMessage)
+        }
+        .alert("Rota isteği hazır", isPresented: $viewModel.showReadyAlert) {
+            Button("Tamam", role: .cancel) { }
+        } message: {
+            Text(viewModel.alertMessage)
         }
     }
 
@@ -141,16 +96,16 @@ struct AIPlannerView: View {
                 subtitle: "Keşfetmek istediğin şehri seç"
             ) {
                 Menu {
-                    ForEach(cities, id: \.self) { city in
+                    ForEach(viewModel.cities, id: \.self) { city in
                         Button(city) {
-                            selectedCity = city
+                            viewModel.selectedCity = city
                         }
                     }
                 } label: {
                     pickerPill(
-                        text: selectedCity ?? "Şehir seç",
+                        text: viewModel.selectedCity ?? "Şehir seç",
                         iconName: nil,
-                        isPlaceholder: selectedCity == nil
+                        isPlaceholder: viewModel.selectedCity == nil
                     )
                 }
             }
@@ -162,12 +117,12 @@ struct AIPlannerView: View {
                 subtitle: "Başlangıç ve bitiş tarihini seç"
             ) {
                 Button {
-                    isDatePickerPresented = true
+                    viewModel.isDatePickerPresented = true
                 } label: {
                     pickerPill(
-                        text: selectedDateRangeText,
+                        text: viewModel.selectedDateRangeText,
                         iconName: "calendar",
-                        isPlaceholder: startDate == nil || endDate == nil
+                        isPlaceholder: viewModel.startDate == nil || viewModel.endDate == nil
                     )
                 }
                 .buttonStyle(.plain)
@@ -180,16 +135,16 @@ struct AIPlannerView: View {
                 subtitle: "Kişi başı tahmini bütçe"
             ) {
                 Menu {
-                    ForEach(budgetOptions, id: \.self) { budget in
+                    ForEach(viewModel.budgetOptions, id: \.self) { budget in
                         Button(budget) {
-                            selectedBudget = budget
+                            viewModel.selectedBudget = budget
                         }
                     }
                 } label: {
                     pickerPill(
-                        text: selectedBudget ?? "Bütçe seç",
+                        text: viewModel.selectedBudget ?? "Bütçe seç",
                         iconName: nil,
-                        isPlaceholder: selectedBudget == nil
+                        isPlaceholder: viewModel.selectedBudget == nil
                     )
                 }
             }
@@ -201,14 +156,10 @@ struct AIPlannerView: View {
                 subtitle: "Birden fazla seçebilirsin"
             ) {
                 horizontalChips(
-                    items: interests,
-                    selectedItems: selectedInterests
+                    items: viewModel.interests,
+                    selectedItems: viewModel.selectedInterests
                 ) { item in
-                    if selectedInterests.contains(item) {
-                        selectedInterests.remove(item)
-                    } else {
-                        selectedInterests.insert(item)
-                    }
+                    viewModel.toggleInterest(item)
                 }
             }
 
@@ -219,10 +170,10 @@ struct AIPlannerView: View {
                 subtitle: "Seyahat temposunu seç"
             ) {
                 horizontalSingleChoiceChips(
-                    items: tempos,
-                    selectedItem: selectedTempo
+                    items: viewModel.tempos,
+                    selectedItem: viewModel.selectedTempo
                 ) { item in
-                    selectedTempo = item
+                    viewModel.selectedTempo = item
                 }
             }
 
@@ -233,10 +184,10 @@ struct AIPlannerView: View {
                 subtitle: "Tercih ettiğin ulaşım"
             ) {
                 horizontalSingleChoiceChips(
-                    items: transports,
-                    selectedItem: selectedTransport
+                    items: viewModel.transports,
+                    selectedItem: viewModel.selectedTransport
                 ) { item in
-                    selectedTransport = item
+                    viewModel.selectedTransport = item
                 }
             }
 
@@ -249,12 +200,12 @@ struct AIPlannerView: View {
                 Menu {
                     ForEach(1...15, id: \.self) { count in
                         Button("\(count) kişi") {
-                            selectedPersonCount = count
+                            viewModel.selectedPersonCount = count
                         }
                     }
                 } label: {
                     pickerPill(
-                        text: "\(selectedPersonCount) kişi",
+                        text: "\(viewModel.selectedPersonCount) kişi",
                         iconName: nil,
                         isPlaceholder: false
                     )
@@ -409,7 +360,7 @@ struct AIPlannerView: View {
 
     private var createRouteButton: some View {
         Button {
-            showComingSoonAlert = true
+            viewModel.createRouteTapped()
         } label: {
             HStack(spacing: AppSpacing.sm) {
                 Image(systemName: "sparkles")
@@ -463,17 +414,17 @@ struct AIPlannerView: View {
                             "Başlangıç tarihi seç",
                             selection: Binding(
                                 get: {
-                                    startDate ?? Date()
+                                    viewModel.startDate ?? Date()
                                 },
                                 set: { newDate in
-                                    startDate = newDate
+                                    viewModel.startDate = newDate
 
-                                    if let endDate, endDate < newDate {
-                                        self.endDate = newDate
+                                    if let endDate = viewModel.endDate, endDate < newDate {
+                                        viewModel.endDate = newDate
                                     }
 
-                                    if endDate == nil {
-                                        endDate = newDate
+                                    if viewModel.endDate == nil {
+                                        viewModel.endDate = newDate
                                     }
                                 }
                             ),
@@ -492,36 +443,29 @@ struct AIPlannerView: View {
                             "Bitiş tarihi seç",
                             selection: Binding(
                                 get: {
-                                    endDate ?? startDate ?? Date()
+                                    viewModel.endDate ?? viewModel.startDate ?? Date()
                                 },
                                 set: { newDate in
-                                    if let startDate, newDate < startDate {
-                                        endDate = startDate
+                                    if let startDate = viewModel.startDate, newDate < startDate {
+                                        viewModel.endDate = startDate
                                     } else {
-                                        endDate = newDate
+                                        viewModel.endDate = newDate
                                     }
                                 }
                             ),
-                            in: (startDate ?? Date())...,
+                            in: (viewModel.startDate ?? Date())...,
                             displayedComponents: .date
                         )
                         .datePickerStyle(.graphical)
                     }
 
-                    if let tripDayCount {
+                    if let tripDayCount = viewModel.tripDayCount {
                         AppTag("\(tripDayCount) günlük plan", iconName: "clock")
                     }
 
                     AppButton(title: "Tarihleri Seç") {
-                        if startDate == nil {
-                            startDate = Date()
-                        }
-
-                        if endDate == nil {
-                            endDate = startDate ?? Date()
-                        }
-
-                        isDatePickerPresented = false
+                        viewModel.selectDatesIfNeeded()
+                        viewModel.isDatePickerPresented = false
                     }
                     .padding(.bottom, AppSpacing.lg)
                 }
@@ -533,38 +477,13 @@ struct AIPlannerView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Kapat") {
-                        isDatePickerPresented = false
+                        viewModel.isDatePickerPresented = false
                     }
                     .foregroundStyle(AppColors.petrol)
                 }
             }
         }
         .presentationDetents([.large])
-    }
-
-    private var selectedDateRangeText: String {
-        guard let startDate, let endDate else {
-            return "Tarih seç"
-        }
-
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "tr_TR")
-        formatter.dateFormat = "d MMM"
-
-        return "\(formatter.string(from: startDate)) - \(formatter.string(from: endDate))"
-    }
-
-    private var tripDayCount: Int? {
-        guard let startDate, let endDate else {
-            return nil
-        }
-
-        let start = Calendar.current.startOfDay(for: startDate)
-        let end = Calendar.current.startOfDay(for: endDate)
-
-        let difference = Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0
-
-        return max(difference + 1, 1)
     }
 }
 

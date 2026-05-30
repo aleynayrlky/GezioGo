@@ -24,10 +24,5 @@ struct RouteStop: Identifiable, Codable, Hashable {
     let latitude: Double?
     let longitude: Double?
 }
-//
-//  RouteStop.swift
-//  GezioGo
-//
-//  Created by Aleyna Yerlikaya on 15.05.2026.
-//
+
 
